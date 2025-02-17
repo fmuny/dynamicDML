@@ -1,0 +1,1042 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+<meta name="generator" content="pdoc3 0.11.5">
+<title>dynamicDML API documentation</title>
+<meta name="description" content="Description
+A Python implementation of dynamic Double Machine Learning (DML) as
+developed in Bodory, Huber &amp; Lafférs (2022)[^Bodory3] and Bradic, Ji …">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:1.5em;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:2em 0 .50em 0}h3{font-size:1.4em;margin:1.6em 0 .7em 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .2s ease-in-out}a:visited{color:#503}a:hover{color:#b62}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900;font-weight:bold}pre code{font-size:.8em;line-height:1.4em;padding:1em;display:block}code{background:#f3f3f3;font-family:"DejaVu Sans Mono",monospace;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source > summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible;min-width:max-content}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em 1em;margin:1em 0}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul ul{padding-left:1em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script type="text/x-mathjax-config">MathJax.Hub.Config({ tex2jax: { inlineMath: [ ['$','$'], ["\\(","\\)"] ], processEscapes: true } });</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS_CHTML" integrity="sha256-kZafAc6mZvK3W3v1pHOcUix30OHQN6pU/NO2oFkqZVw=" crossorigin></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" integrity="sha512-D9gUyxqja7hBtkWpPWGt9wfbfaMGVt9gnyCvYa+jojwwPHLCzUm5i8rpk7vD7wNee9bA35eYIjobYPaQuKS1MQ==" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => {
+hljs.configure({languages: ['bash', 'css', 'diff', 'graphql', 'ini', 'javascript', 'json', 'plaintext', 'python', 'python-repl', 'rust', 'shell', 'sql', 'typescript', 'xml', 'yaml']});
+hljs.highlightAll();
+/* Collapse source docstrings */
+setTimeout(() => {
+[...document.querySelectorAll('.hljs.language-python > .hljs-string')]
+.filter(el => el.innerHTML.length > 200 && ['"""', "'''"].includes(el.innerHTML.substring(0, 3)))
+.forEach(el => {
+let d = document.createElement('details');
+d.classList.add('hljs-string');
+d.innerHTML = '<summary>"""</summary>' + el.innerHTML.substring(3);
+el.replaceWith(d);
+});
+}, 100);
+})</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Package <code>dynamicDML</code></h1>
+</header>
+<section id="section-intro">
+<h2 id="description">Description</h2>
+<p>A Python implementation of dynamic Double Machine Learning (DML) as
+developed in Bodory, Huber &amp; Lafférs (2022)<sup id="fnref:Bodory3"><a class="footnote-ref" href="#fn:Bodory3">1</a></sup> and Bradic, Ji &amp; Zhang
+(2024).<sup id="fnref:Bradic3"><a class="footnote-ref" href="#fn:Bradic3">2</a></sup>
+The <code><a title="dynamicDML" href="#dynamicDML">dynamicDML</a></code> package allows to flexibly estimate counterfactual outcomes
+and treatment effects of sequential policies from observational data, where
+treatment assignment may dynamically depend on time-varying characteristics.
+For a detailed overview of these methods, see Muny (2025).<sup id="fnref:Muny3"><a class="footnote-ref" href="#fn:Muny3">3</a></sup></p>
+<h2 id="installation">Installation</h2>
+<p>To install the <code><a title="dynamicDML" href="#dynamicDML">dynamicDML</a></code> package run</p>
+<pre><code>pip install dynamicDML
+</code></pre>
+<p>in the terminal. <code><a title="dynamicDML" href="#dynamicDML">dynamicDML</a></code> requires the following dependencies:</p>
+<ul>
+<li>flaml[automl]&gt;=2.3.3</li>
+<li>matplotlib&gt;=3.10.0</li>
+<li>mgzip&gt;=0.2.1</li>
+<li>numpy&gt;=2.2.3</li>
+<li>pandas&gt;=2.2.3</li>
+<li>scikit-learn&gt;=1.6.1</li>
+<li>scipy&gt;=1.15.2</li>
+<li>seaborn&gt;=0.13.2</li>
+</ul>
+<p>The implementation relies on Python 3.</p>
+<h2 id="examples">Examples</h2>
+<p>The following examples demonstrate the basic usage of the <code><a title="dynamicDML" href="#dynamicDML">dynamicDML</a></code>
+package with default settings.</p>
+<pre><code># load dynamicDML package
+import dynamicDML
+import numpy as np
+
+# Generate data
+data = dyn_data_example(n=n, r_0=r_0, random_state=seed)
+
+# Define seed
+seed=999
+
+# Define counterfactual contrasts of interest
+all_treat = np.ones_like(data['D1'])
+all_control = np.zeros_like(data['D1'])
+
+# Basic setting without tuning
+model = dml2periods(dynamic_confounding=True, random_state=seed)
+
+# APO treat-treat
+model = model.init_sequence(d1treat='treat', d2treat='treat')
+model = model.fit_sequence(
+    'treat', 'treat', data['Y'], data['D1'], data['D2'], data['X0'],
+    data['X1'], g1t=all_treat, g2t=all_treat)
+model.sequence_summary()
+model = model.compute_APO(d1treat='treat', d2treat='treat')
+
+# APO control-control
+model = model.init_sequence(d1treat='control', d2treat='control')
+model = model.fit_sequence(
+    'control', 'control', data['Y'], data['D1'], data['D2'], data['X0'],
+    data['X1'], g1t=all_control, g2t=all_control)
+model.sequence_summary()
+model = model.compute_APO(d1treat='control', d2treat='control')
+
+# ATE treat-treat vs. control-control
+model = model.compute_ATE(
+    d1treat='treat', d2treat='treat', d1control='control', d2control='control')
+</code></pre>
+<h2 id="release-notes">Release Notes</h2>
+<p>Version 0.1.0: Initial release of <code><a title="dynamicDML" href="#dynamicDML">dynamicDML</a></code> python package</p>
+<h2 id="authors">Authors</h2>
+<p>Fabian Muny</p>
+<h2 id="references">References</h2>
+<div class="footnote">
+<hr>
+<ol>
+<li id="fn:Bodory3">
+<p>Bodory, H., Huber, M., &amp; Lafférs, L. (2022). Evaluating (weighted) dynamic
+treatment effects by double machine learning. The Econometrics Journal,
+25(3), 648.&#160;<a class="footnote-backref" href="#fnref:Bodory3" title="Jump back to footnote 1 in the text">&#8617;</a></p>
+</li>
+<li id="fn:Bradic3">
+<p>Bradic, J., Ji, W., &amp; Zhang, Y. (2024). High-dimensional inference for
+dynamic treatment effects. The Annals of Statistics, 52(2), 415–440.&#160;<a class="footnote-backref" href="#fnref:Bradic3" title="Jump back to footnote 2 in the text">&#8617;</a></p>
+</li>
+<li id="fn:Muny3">
+<p>Muny, F. (2025). Evaluating Program Sequences with Double Machine Learning:
+An Application to Labor Market Policies. Manuscript in preparation.&#160;<a class="footnote-backref" href="#fnref:Muny3" title="Jump back to footnote 3 in the text">&#8617;</a></p>
+</li>
+</ol>
+</div>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="dynamicDML.dyn_data_example"><code class="name flex">
+<span>def <span class="ident">dyn_data_example</span></span>(<span>n=1000, random_state=None, r_0=3)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Generate data according to linear dgp from Bradic et al. (2024)<sup id="fnref:Bradic"><a class="footnote-ref" href="#fn:Bradic">1</a></sup>.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>n</code></strong> :&ensp;<code>int</code></dt>
+<dd>The number of observations to be generated. The defualt is 1000.</dd>
+<dt><strong><code>random_state</code></strong> :&ensp;<code>int, RandomState instance</code> or <code>None</code></dt>
+<dd>Controls randomness of the samples generated. The default is <code>None</code>.</dd>
+<dt><strong><code>r_0</code></strong> :&ensp;<code>int</code></dt>
+<dd>The number of covariates per period. Only the first three covariates
+will have an influence on future treatment assignment, covariates
+and outcomes. The default is 3.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>return_dict</code></strong> :&ensp;<code>dict</code></dt>
+<dd>
+<p>Dictionary of generated variables:</p>
+<ul>
+<li><code>X0</code>: pre-treatment covariates</li>
+<li><code>p1</code>: first period propensity scores</li>
+<li><code>D1</code>: first period treatment</li>
+<li><code>X1_d10</code>: potential time-varying covariates if <code>d1=0</code></li>
+<li><code>X1_d11</code>: potential time-varying covariates if <code>d1=1</code></li>
+<li><code>X1</code>: time-varying covariates</li>
+<li><code>p2_d10</code>: second period propensity scores if <code>d1=0</code></li>
+<li><code>p2_d11</code>: second period propensity scores if <code>d1=1</code></li>
+<li><code>p2</code>: second period propensity scores</li>
+<li><code>D2</code>: second period treatment</li>
+<li><code>Y</code>: final outcome</li>
+<li><code>Y00</code>: potential outcome if <code>d1=0</code> and <code>d2=0</code></li>
+<li><code>Y10</code>: potential outcome if <code>d1=1</code> and <code>d2=0</code></li>
+<li><code>Y01</code>: potential outcome if <code>d1=0</code> and <code>d2=1</code></li>
+<li><code>Y11</code>: potential outcome if <code>d1=1</code> and <code>d2=1</code></li>
+</ul>
+</dd>
+</dl>
+<h2 id="details">Details</h2>
+<p>The true effect of sequence 11 vs. sequence 00 equals
+<span><span class="MathJax_Preview">ATE_{\text{11-00}} = \alpha_{Y_{11}} + \sum_{j=1}^{r_0}
+\gamma_{Y_{11}, j} - \alpha_{Y_{00}} = -3</span><script type="math/tex; mode=display">ATE_{\text{11-00}} = \alpha_{Y_{11}} + \sum_{j=1}^{r_0}
+\gamma_{Y_{11}, j} - \alpha_{Y_{00}} = -3</script></span></p>
+<h2 id="references">References</h2>
+<div class="footnote">
+<hr>
+<ol>
+<li id="fn:Bradic">
+<p>Bradic, J., Ji, W., &amp; Zhang, Y. (2024). High-dimensional inference
+for dynamic treatment effects. The Annals of Statistics, 52(2),
+415–440.&#160;<a class="footnote-backref" href="#fnref:Bradic" title="Jump back to footnote 1 in the text">&#8617;</a></p>
+</li>
+</ol>
+</div></div>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="dynamicDML.dml2periods"><code class="flex name class">
+<span>class <span class="ident">dml2periods</span></span>
+<span>(</span><span>dynamic_confounding=True,<br>random_state=None,<br>nfolds=3,<br>p2_on_d1_subset=False,<br>extra_split_train_mu=True,<br>extra_split_train_nu=True,<br>crossfit_nu=False,<br>doubly_robust_nu=False,<br>verbose=True)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Estimation of average treatment effects under static or dynamic
+confounding for a wide range of counterfactual sequences.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>dynamic_confounding</code></strong> :&ensp;<code>bool</code></dt>
+<dd>Whether to assume dynamic confounding. If <code>False</code> static
+confounding is assumed, treating sequences as single treatment
+states. The default is <code>True</code>.</dd>
+<dt><strong><code>random_state</code></strong> :&ensp;<code>int, RandomState instance</code> or <code>None</code></dt>
+<dd>Controls randomness of the sample splits in cross-fitting. The
+default is <code>None</code>.</dd>
+<dt><strong><code>nfolds</code></strong> :&ensp;<code>int</code></dt>
+<dd>Number of folds for cross-fitting. The default is 3.</dd>
+<dt><strong><code>p2_on_d1_subset</code></strong> :&ensp;<code>bool</code></dt>
+<dd>This parameter regulates if we train <span><span class="MathJax_Preview">p_{d_2}</span><script type="math/tex">p_{d_2}</script></span> stratified on
+the subset <span><span class="MathJax_Preview">D_1=d_1</span><script type="math/tex">D_1=d_1</script></span> (<code>True</code>) as implemented in
+Bradic et al.<sup id="fnref2:Bradic2"><a class="footnote-ref" href="#fn:Bradic2">1</a></sup> or on
+the full sample with <span><span class="MathJax_Preview">D_1</span><script type="math/tex">D_1</script></span> as a regressor (<code>False</code>) as
+implemented in Bodory et al.<sup id="fnref3:Bodory2"><a class="footnote-ref" href="#fn:Bodory2">2</a></sup> The stratification should
+reduce bias in
+the estimates of <span><span class="MathJax_Preview">p_{d_2}</span><script type="math/tex">p_{d_2}</script></span> but may increase variance if there
+are few individuals following a particular program <span><span class="MathJax_Preview">d_1</span><script type="math/tex">d_1</script></span>.
+The default is <code>False</code>.</dd>
+<dt><strong><code>extra_split_train_mu</code></strong> :&ensp;<code>bool</code></dt>
+<dd>Whether the <span><span class="MathJax_Preview">\mu</span><script type="math/tex">\mu</script></span> that directly enters the DML score should be
+estimated on the full (<code>False</code>) or only half of the training
+sample (<code>True</code>). If <code>extra_split_train_nu=True</code>, setting
+<code>extra_split_train_mu=True</code> is computationally faster as
+<span><span class="MathJax_Preview">\mu</span><script type="math/tex">\mu</script></span> does
+not need to be re-estimated on one half of the training sample
+later. The default is <code>True</code>.</dd>
+<dt><strong><code>extra_split_train_nu</code></strong> :&ensp;<code>bool</code></dt>
+<dd>Whether to perform an additional split of the training sample for
+the estimation of <span><span class="MathJax_Preview">\nu</span><script type="math/tex">\nu</script></span>. This is recommended to avoid
+overfitting as
+the estimation of <span><span class="MathJax_Preview">\nu</span><script type="math/tex">\nu</script></span> takes estimates of <span><span class="MathJax_Preview">\mu</span><script type="math/tex">\mu</script></span> as a
+pseudo outcome. The default is <code>True</code>.</dd>
+<dt><strong><code>crossfit_nu</code></strong> :&ensp;<code>bool</code></dt>
+<dd>If <code>extra_split_train_nu=True</code>, cross-fitting allows to regain
+full-sample efficiency by reversing the roles of the subsamples
+created to estimate <span><span class="MathJax_Preview">\mu</span><script type="math/tex">\mu</script></span> and <span><span class="MathJax_Preview">\nu</span><script type="math/tex">\nu</script></span>, respectively.
+However, this leads
+to higher computation time. The default is <code>False</code>.</dd>
+<dt><strong><code>doubly_robust_nu</code></strong> :&ensp;<code>bool</code></dt>
+<dd>This parameter indicates whether <span><span class="MathJax_Preview">\nu</span><script type="math/tex">\nu</script></span> should be estimated in
+a doubly-robust manner as proposed in Bradic et al.<sup id="fnref3:Bradic2"><a class="footnote-ref" href="#fn:Bradic2">1</a></sup>
+(<code>True</code>). Otherwise, it
+is estimated by regressing <span><span class="MathJax_Preview">\mu</span><script type="math/tex">\mu</script></span> on pre-treatment covariates
+as proposed in Bodory et al.<sup id="fnref4:Bodory2"><a class="footnote-ref" href="#fn:Bodory2">2</a></sup> (<code>False</code>). The former
+is computationally more expensive. The default is <code>False</code>.</dd>
+<dt><strong><code>verbose</code></strong> :&ensp;<code>bool</code></dt>
+<dd>Controls the verbosity when fitting and predicting. The default is
+<code>True</code>.</dd>
+</dl>
+<h2 id="details">Details</h2>
+<p>When <code>dynamic_confounding=True</code>, this method estimates the average
+potential outcome according to the DML-formula</p>
+<p><span><span class="MathJax_Preview"> \hat\theta^{\mathbf{d}_2} = \frac{1}{N} \sum_{i=1}^N
+\hat{\nu}_{\mathbf{d}_2}(X_{0i})
++ \frac{\left(\hat{\mu}_{\mathbf{d}_2}(\mathbf{X}_{1i})
+-
+\hat{\nu}_{\mathbf{d}_2}(X_{0i})
+\right) \cdot
+\mathbf{1}\{D_{1i}=d_1\} }{\hat{p}_{d_1}(X_{0i})}\\
++ \frac{\left(Y_i -
+\hat{\mu}_{\mathbf{d}_2}
+(\mathbf{X}_{1i})\right)
+\cdot \mathbf{1}\{\mathbf{D}_{2i}=\mathbf{d}_2
+\}}{\hat{p}_{d_2}
+(\mathbf{X}_{1i}, d_{1})\hat{p}_{d_1}(X_{0i})} </span><script type="math/tex; mode=display"> \hat\theta^{\mathbf{d}_2} = \frac{1}{N} \sum_{i=1}^N
+\hat{\nu}_{\mathbf{d}_2}(X_{0i})
++ \frac{\left(\hat{\mu}_{\mathbf{d}_2}(\mathbf{X}_{1i})
+-
+\hat{\nu}_{\mathbf{d}_2}(X_{0i})
+\right) \cdot
+\mathbf{1}\{D_{1i}=d_1\} }{\hat{p}_{d_1}(X_{0i})}\\
++ \frac{\left(Y_i -
+\hat{\mu}_{\mathbf{d}_2}
+(\mathbf{X}_{1i})\right)
+\cdot \mathbf{1}\{\mathbf{D}_{2i}=\mathbf{d}_2
+\}}{\hat{p}_{d_2}
+(\mathbf{X}_{1i}, d_{1})\hat{p}_{d_1}(X_{0i})} </script></span></p>
+<p>For details and a generalization to dynamic policies see
+Muny (2025).<sup id="fnref:Muny2"><a class="footnote-ref" href="#fn:Muny2">3</a></sup></p>
+<p>When estimating counterfactual outcomes of treatment sequences we
+typically want to make an extra split of the training sample to avoid
+overfitting in the estimation of <span><span class="MathJax_Preview">{\nu}_{\mathbf{d}_2}</span><script type="math/tex">{\nu}_{\mathbf{d}_2}</script></span>,
+regulated by
+<code>extra_split_tain_nu</code>. The estimate of <span><span class="MathJax_Preview">{\mu}_{\mathbf{d}_2}
+(\mathbf{X}_{1i})</span><script type="math/tex">{\mu}_{\mathbf{d}_2}
+(\mathbf{X}_{1i})</script></span> is needed for two things:</p>
+<ol>
+<li>as prediction to enter the dynamic DML formula</li>
+<li>as prediction to be used as outcome in the estimation of
+<span><span class="MathJax_Preview">\hat{\nu}_{\mathbf{d}_2}</span><script type="math/tex">\hat{\nu}_{\mathbf{d}_2}</script></span></li>
+</ol>
+<p>For (1.) the extra split is not neccessary but it can
+computationally more convenient re-use the
+<span><span class="MathJax_Preview">\hat{\mu}_{\mathbf{d}_2}(\mathbf{X}_{1i})</span><script type="math/tex">\hat{\mu}_{\mathbf{d}_2}(\mathbf{X}_{1i})</script></span>
+estimated to get
+<span><span class="MathJax_Preview">\hat{\nu}_{\mathbf{d}_2}</span><script type="math/tex">\hat{\nu}_{\mathbf{d}_2}</script></span>,
+instead of additionally fitting
+<span><span class="MathJax_Preview">\hat{\mu}_{\mathbf{d}_2}(\mathbf{X}_{1i})</span><script type="math/tex">\hat{\mu}_{\mathbf{d}_2}(\mathbf{X}_{1i})</script></span>
+on the full training sample. This is
+regulated with the paramter <code>extra_split_tain_mu</code>. If it is <code>True</code>,
+<span><span class="MathJax_Preview">\hat{\mu}_{\mathbf{d}_2}(\mathbf{X}_{1i})</span><script type="math/tex">\hat{\mu}_{\mathbf{d}_2}(\mathbf{X}_{1i})</script></span>
+is trained only on one half of the training sample. Then
+this trained estimate can later be re-used for
+<span><span class="MathJax_Preview">\hat{\nu}_{\mathbf{d}_2}</span><script type="math/tex">\hat{\nu}_{\mathbf{d}_2}</script></span>.
+If it is <code>False</code>,
+<span><span class="MathJax_Preview">\hat{\mu}_{\mathbf{d}_2}(\mathbf{X}_{1i})</span><script type="math/tex">\hat{\mu}_{\mathbf{d}_2}(\mathbf{X}_{1i})</script></span>
+is trained on the whole training sample.
+Then, if we want an additional split for
+<span><span class="MathJax_Preview">\hat{\nu}_{\mathbf{d}_2}</span><script type="math/tex">\hat{\nu}_{\mathbf{d}_2}</script></span>
+(i.e. <code>extra_split_train_nu=True</code>),
+<span><span class="MathJax_Preview">\hat{\mu}_{\mathbf{d}_2}(\mathbf{X}_{1i})</span><script type="math/tex">\hat{\mu}_{\mathbf{d}_2}(\mathbf{X}_{1i})</script></span>
+has to be re-estimated on one half of the training sample later.</p>
+<p>To recover the estimates from the original papers, use the following
+settings, where <code>Bodory</code> and <code>fewsplits</code> are propsed in Bodory et
+al.<sup id="fnref:Bodory2"><a class="footnote-ref" href="#fn:Bodory2">2</a></sup>, and <code>D-DRL</code>, <code>DTL</code>, and <code>D-DRL'</code> are proposed in
+Bradic et al.<sup id="fnref:Bradic2"><a class="footnote-ref" href="#fn:Bradic2">1</a></sup>:</p>
+<table>
+<thead>
+<tr>
+<th>Overview</th>
+<th>Bodory</th>
+<th>fewspl.</th>
+<th>D-DRL</th>
+<th>DTL</th>
+<th>D-DRL'</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>p2_on_d1_subset</td>
+<td>False</td>
+<td>True</td>
+<td>True</td>
+<td>True</td>
+<td>True</td>
+</tr>
+<tr>
+<td>extra_split_train_mu</td>
+<td>True</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+</tr>
+<tr>
+<td>extra_split_train_nu</td>
+<td>True</td>
+<td>True</td>
+<td>True</td>
+<td>False</td>
+<td>False</td>
+</tr>
+<tr>
+<td>crossfit_nu</td>
+<td>False</td>
+<td>False</td>
+<td>True</td>
+<td>False</td>
+<td>False</td>
+</tr>
+<tr>
+<td>doubly_robust_nu</td>
+<td>False</td>
+<td>False</td>
+<td>True</td>
+<td>False</td>
+<td>True</td>
+</tr>
+</tbody>
+</table>
+<p>The settings from Bodory et al.<sup id="fnref2:Bodory2"><a class="footnote-ref" href="#fn:Bodory2">2</a></sup> are used as the default.</p>
+<p>When <code>dynamic_confounding=False</code>, each treatment sequence is considered
+to ba a single treatment state and estimation proceeds with standard
+single-period DML as originally proposed in Chernozhukov et al. (2018).
+<sup id="fnref:Chern2"><a class="footnote-ref" href="#fn:Chern2">4</a></sup></p>
+<h2 id="references">References</h2>
+<div class="footnote">
+<hr>
+<ol>
+<li id="fn:Bradic2">
+<p>Bradic, J., Ji, W., &amp; Zhang, Y. (2024). High-dimensional inference
+for dynamic treatment effects. The Annals of Statistics, 52(2),
+415–440.&#160;<a class="footnote-backref" href="#fnref:Bradic2" title="Jump back to footnote 1 in the text">&#8617;</a><a class="footnote-backref" href="#fnref2:Bradic2" title="Jump back to footnote 1 in the text">&#8617;</a><a class="footnote-backref" href="#fnref3:Bradic2" title="Jump back to footnote 1 in the text">&#8617;</a></p>
+</li>
+<li id="fn:Bodory2">
+<p>Bodory, H., Huber, M., &amp; Lafférs, L. (2022). Evaluating (weighted)
+dynamic treatment effects by double machine learning. The
+Econometrics Journal, 25(3), 628–648.&#160;<a class="footnote-backref" href="#fnref:Bodory2" title="Jump back to footnote 2 in the text">&#8617;</a><a class="footnote-backref" href="#fnref2:Bodory2" title="Jump back to footnote 2 in the text">&#8617;</a><a class="footnote-backref" href="#fnref3:Bodory2" title="Jump back to footnote 2 in the text">&#8617;</a><a class="footnote-backref" href="#fnref4:Bodory2" title="Jump back to footnote 2 in the text">&#8617;</a></p>
+</li>
+<li id="fn:Muny2">
+<p>Muny, F. (2025). Evaluating Program Sequences with Double Machine
+Learning: An Application to Labor Market Policies. Manuscript in
+preparation.&#160;<a class="footnote-backref" href="#fnref:Muny2" title="Jump back to footnote 3 in the text">&#8617;</a></p>
+</li>
+<li id="fn:Chern2">
+<p>Chernozhukov, V., Chetverikov, D., Demirer, M., Duflo, E., Hansen,
+C., Newey, W., &amp; Robins, J. (2018). Double/debiased machine
+learning for treatment and structural parameters.&#160;<a class="footnote-backref" href="#fnref:Chern2" title="Jump back to footnote 4 in the text">&#8617;</a></p>
+</li>
+</ol>
+</div></div>
+<h3>Methods</h3>
+<dl>
+<dt id="dynamicDML.dml2periods.init_sequence"><code class="name flex">
+<span>def <span class="ident">init_sequence</span></span>(<span>self,<br>d1treat,<br>d2treat,<br>MLmethod_p1=RandomForestClassifier(),<br>MLmethod_p2=RandomForestClassifier(),<br>MLmethod_mu=RandomForestRegressor(),<br>MLmethod_nu=RandomForestRegressor(),<br>replace=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Initialize a counterfactual treatment sequence.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>d1treat</code></strong> :&ensp;<code>int</code> or <code>str</code></dt>
+<dd>Name of counterfactual treatment in first period.</dd>
+<dt><strong><code>d2treat</code></strong> :&ensp;<code>int</code> or <code>str</code></dt>
+<dd>Name of counterfactual treatment in second period.</dd>
+<dt><strong><code>MLmethod_p1</code></strong> :&ensp;<code>estimator implementing fit() and predict()</code></dt>
+<dd>A machine learner implementing <code>fit()</code> and <code>predict()</code> methods
+for the nuisance function <span><span class="MathJax_Preview">p_{d_1}(X_0)</span><script type="math/tex">p_{d_1}(X_0)</script></span>.
+If a classifier is used with method <code>predict_proba()</code> this
+method will be preferred over <code>predict()</code>. Default is
+<a href="https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html" target="_blank"><code>sklearn.ensemble.RandomForestClassifier</code></a>.
+If nuisance estimators should be tuned with with AutoML, the
+estimator needs to be specified as <code><a title="dynamicDML.FlamlClassifier" href="#dynamicDML.FlamlClassifier">FlamlClassifier</a></code>.</dd>
+<dt><strong><code>MLmethod_p2</code></strong> :&ensp;<code>estimator implementing fit() and predict()</code></dt>
+<dd>A machine learner implementing <code>fit()</code> and <code>predict()</code> methods
+for the nuisance function
+<span><span class="MathJax_Preview">p_{d_2}(\mathbf{X}_1,d_1)</span><script type="math/tex">p_{d_2}(\mathbf{X}_1,d_1)</script></span>.
+If a classifier is used with method <code>predict_proba()</code> this
+method will be preferred over <code>predict()</code>. Default is
+<a href="https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html" target="_blank"><code>sklearn.ensemble.RandomForestClassifier</code></a>.
+If nuisance estimators should be tuned with with AutoML, the
+estimator needs to be specified as <code><a title="dynamicDML.FlamlClassifier" href="#dynamicDML.FlamlClassifier">FlamlClassifier</a></code>.</dd>
+<dt><strong><code>MLmethod_mu</code></strong> :&ensp;<code>estimator implementing fit() and predict()</code></dt>
+<dd>A machine learner implementing <code>fit()</code> and <code>predict()</code> methods
+for the nuisance function
+<span><span class="MathJax_Preview">\mu_{\mathbf{d}_2}(\mathbf{X}_1)</span><script type="math/tex">\mu_{\mathbf{d}_2}(\mathbf{X}_1)</script></span>.
+If a classifier is used with method <code>predict_proba()</code> this
+method will be preferred over <code>predict()</code>. Default is
+<a href="https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestRegressor.html" target="_blank"><code>sklearn.ensemble.RandomForestRegressor</code></a>.
+If nuisance estimators should be tuned with with AutoML, the
+estimator needs to be specified as <code><a title="dynamicDML.FlamlRegressor" href="#dynamicDML.FlamlRegressor">FlamlRegressor</a></code>.</dd>
+<dt><strong><code>MLmethod_nu</code></strong> :&ensp;<code>estimator implementing fit() and predict()</code></dt>
+<dd>A machine learner implementing <code>fit()</code> and <code>predict()</code> methods
+for the nuisance function <span><span class="MathJax_Preview">\nu_{\mathbf{d}_2}(X)</span><script type="math/tex">\nu_{\mathbf{d}_2}(X)</script></span>.
+Default is
+<a href="https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestRegressor.html" target="_blank"><code>sklearn.ensemble.RandomForestRegressor</code></a>.
+If nuisance estimators should be tuned with with AutoML, the
+estimator needs to be specified as <code><a title="dynamicDML.FlamlRegressor" href="#dynamicDML.FlamlRegressor">FlamlRegressor</a></code>.</dd>
+<dt><strong><code>replace</code></strong> :&ensp;<code>bool</code></dt>
+<dd>Whether to re-initialize the sequence if it already exists. This
+will delete any previous information for this sequence. The
+default is <code>False</code>.</dd>
+</dl></div>
+</dd>
+<dt id="dynamicDML.dml2periods.sequence_summary"><code class="name flex">
+<span>def <span class="ident">sequence_summary</span></span>(<span>self, methods=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Print a summary of the initialized sequences.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>methods</code></strong> :&ensp;<code>bool</code></dt>
+<dd>Whether to print additional information about estimators. The
+default is <code>False</code>.</dd>
+</dl></div>
+</dd>
+<dt id="dynamicDML.dml2periods.drop_sequence"><code class="name flex">
+<span>def <span class="ident">drop_sequence</span></span>(<span>self, d1treat, d2treat)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Delete an initialized treatment sequence.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>d1treat</code></strong> :&ensp;<code>int</code> or <code>str</code></dt>
+<dd>Name of counterfactual treatment in first period.</dd>
+<dt><strong><code>d2treat</code></strong> :&ensp;<code>int</code> or <code>str</code></dt>
+<dd>Name of counterfactual treatment in second period.</dd>
+</dl></div>
+</dd>
+<dt id="dynamicDML.dml2periods.fit_sequence"><code class="name flex">
+<span>def <span class="ident">fit_sequence</span></span>(<span>self, d1treat, d2treat, y2, d1, d2, x0, x1=None, p1t=None, p2t=None, g1t=None, g2t=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Fit an initialized treatment sequence.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>d1treat</code></strong> :&ensp;<code>int</code> or <code>str</code></dt>
+<dd>Name of counterfactual treatment in first period.</dd>
+<dt><strong><code>d2treat</code></strong> :&ensp;<code>int</code> or <code>str</code></dt>
+<dd>Name of counterfactual treatment in second period.</dd>
+<dt><strong><code>y2</code></strong> :&ensp;<code>array-like</code> of <code>shape (n_samples,)</code></dt>
+<dd>The outcome variable.</dd>
+<dt><strong><code>d1</code></strong> :&ensp;<code>array-like</code> of <code>shape (n_samples,)</code></dt>
+<dd>The (observed) treatment in the first period. Array of integers.</dd>
+<dt><strong><code>d2</code></strong> :&ensp;<code>array-like</code> of <code>shape (n_samples,)</code></dt>
+<dd>The (observed) treatment in the second period. Array of integers.</dd>
+<dt><strong><code>x0</code></strong> :&ensp;<code>array-like</code> of <code>shape (n_samples, n_features_t0)</code></dt>
+<dd>Array of pre-treatment covariates.</dd>
+<dt><strong><code>x1</code></strong> :&ensp;<code>array-like</code> of <code>shape (n_samples, n_features_t1)</code> or <code>None</code></dt>
+<dd>Array of time-varying covariates or <code>None</code> if static confounding.
+The default is <code>None</code>.</dd>
+<dt><strong><code>p1t</code></strong> :&ensp;<code>array-like</code> of <code>shape (n_samples,)</code> or <code>None</code></dt>
+<dd>Array of first-period propensity scores or <code>None</code>. If <code>None</code>,
+propensity scores are estimated. The default is <code>None</code>.</dd>
+<dt><strong><code>p2t</code></strong> :&ensp;<code>array-like</code> of <code>shape (n_samples,)</code> or <code>None</code></dt>
+<dd>Array of second-period propensity scores or <code>None</code>. If <code>None</code>,
+propensity scores are estimated. The default is <code>None</code>.</dd>
+<dt><strong><code>g1t</code></strong> :&ensp;<code>array-like</code> of <code>shape (n_samples,)</code> or <code>None</code></dt>
+<dd>Array of first-period counterfactual treatments or <code>None</code>. If
+<code>None</code>,
+<code>d1treat</code> will be used as counterfactual for all individuals.
+If array provided, this will be used as counterfactual and
+<code>d1treat</code> serves only as a name of the counterfactual. Can be
+used to implement dynamic policies.</dd>
+<dt><strong><code>g2t</code></strong> :&ensp;<code>array-like</code> of <code>shape (n_samples,)</code> or <code>None</code></dt>
+<dd>Array of second-period counterfactual treatments or <code>None</code>. If
+<code>None</code>,
+<code>d1treat</code> will be used as counterfactual for all individuals.
+If array provided, this will be used as counterfactual and
+<code>d1treat</code> serves only as a name of the counterfactual. Can be
+used to implement dynamic policies.</dd>
+</dl></div>
+</dd>
+<dt id="dynamicDML.dml2periods.tune_auto_sequence"><code class="name flex">
+<span>def <span class="ident">tune_auto_sequence</span></span>(<span>self, d1treat, d2treat, y2, d1, d2, x0, x1=None, p1t=None, p2t=None, g1t=None, g2t=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Tune initialized treatment sequence.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>d1treat</code></strong> :&ensp;<code>int</code> or <code>str</code></dt>
+<dd>Name of counterfactual treatment in first period.</dd>
+<dt><strong><code>d2treat</code></strong> :&ensp;<code>int</code> or <code>str</code></dt>
+<dd>Name of counterfactual treatment in second period.</dd>
+<dt><strong><code>y2</code></strong> :&ensp;<code>array-like</code> of <code>shape (n_samples,)</code></dt>
+<dd>The outcome variable.</dd>
+<dt><strong><code>d1</code></strong> :&ensp;<code>array-like</code> of <code>shape (n_samples,)</code></dt>
+<dd>The (observed) treatment in the first period. Array of integers.</dd>
+<dt><strong><code>d2</code></strong> :&ensp;<code>array-like</code> of <code>shape (n_samples,)</code></dt>
+<dd>The (observed) treatment in the second period. Array of integers.</dd>
+<dt><strong><code>x0</code></strong> :&ensp;<code>array-like</code> of <code>shape (n_samples, n_features_t0)</code></dt>
+<dd>Array of pre-treatment covariates.</dd>
+<dt><strong><code>x1</code></strong> :&ensp;<code>array-like</code> of <code>shape (n_samples, n_features_t1)</code> or <code>None</code></dt>
+<dd>Array of time-varying covariates or <code>None</code> if static confounding.
+The default is <code>None</code>.</dd>
+<dt><strong><code>p1t</code></strong> :&ensp;<code>array-like</code> of <code>shape (n_samples,)</code> or <code>None</code></dt>
+<dd>Array of first-period propensity scores or <code>None</code>. If <code>None</code>,
+propensity scores are estimated. The default is <code>None</code>.</dd>
+<dt><strong><code>p2t</code></strong> :&ensp;<code>array-like</code> of <code>shape (n_samples,)</code> or <code>None</code></dt>
+<dd>Array of second-period propensity scores or <code>None</code>. If <code>None</code>,
+propensity scores are estimated. The default is <code>None</code>.</dd>
+<dt><strong><code>g1t</code></strong> :&ensp;<code>array-like</code> of <code>shape (n_samples,)</code> or <code>None</code></dt>
+<dd>Array of first-period counterfactual treatments or <code>None</code>. If
+<code>None</code>,
+<code>d1treat</code> will be used as counterfactual for all individuals.
+If array provided, this will be used as counterfactual and
+<code>d1treat</code> serves only as a name of the counterfactual. Can be
+used to implement dynamic policies.</dd>
+<dt><strong><code>g2t</code></strong> :&ensp;<code>array-like</code> of <code>shape (n_samples,)</code> or <code>None</code></dt>
+<dd>Array of second-period counterfactual treatments or <code>None</code>. If
+<code>None</code>,
+<code>d1treat</code> will be used as counterfactual for all individuals.
+If array provided, this will be used as counterfactual and
+<code>d1treat</code> serves only as a name of the counterfactual. Can be
+used to implement dynamic policies.</dd>
+</dl></div>
+</dd>
+<dt id="dynamicDML.dml2periods.export_sequence"><code class="name flex">
+<span>def <span class="ident">export_sequence</span></span>(<span>self, d1treat, d2treat, path)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Export sequence object as compressed gzip file.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>d1treat</code></strong> :&ensp;<code>int</code> or <code>str</code></dt>
+<dd>Name of counterfactual treatment in first period.</dd>
+<dt><strong><code>d2treat</code></strong> :&ensp;<code>int</code> or <code>str</code></dt>
+<dd>Name of counterfactual treatment in second period.</dd>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>Path of directory where file should be saved. File will be saved
+with name <code>d1treat_d2treat.gz</code> in provided directory.</dd>
+</dl></div>
+</dd>
+<dt id="dynamicDML.dml2periods.import_sequence"><code class="name flex">
+<span>def <span class="ident">import_sequence</span></span>(<span>self, d1treat, d2treat, path, filename=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Import sequence object from compressed gzip file.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>d1treat</code></strong> :&ensp;<code>int</code> or <code>str</code></dt>
+<dd>Name of counterfactual treatment in first period.</dd>
+<dt><strong><code>d2treat</code></strong> :&ensp;<code>int</code> or <code>str</code></dt>
+<dd>Name of counterfactual treatment in second period.</dd>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>Path of directory where file to import is saved.</dd>
+<dt><strong><code>filename</code></strong> :&ensp;<code>str</code> or <code>None</code></dt>
+<dd>Name of file to import. Should have .gz extension. If <code>None</code>, the
+filename 'd1treat_d2treat' is assumed.</dd>
+</dl></div>
+</dd>
+<dt id="dynamicDML.dml2periods.compute_APO"><code class="name flex">
+<span>def <span class="ident">compute_APO</span></span>(<span>self, d1treat, d2treat, groupvar=None, name_groupvar=None, trim=0)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Compute (group) average potential outcome (APO) from fitted scores of a
+particular sequence.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>d1treat</code></strong> :&ensp;<code>int</code> or <code>str</code></dt>
+<dd>Name of counterfactual treatment in first period.</dd>
+<dt><strong><code>d2treat</code></strong> :&ensp;<code>int</code> or <code>str</code></dt>
+<dd>Name of counterfactual treatment in second period.</dd>
+<dt><strong><code>groupvar</code></strong> :&ensp;<code>array-like</code> of <code>shape (n_samples,)</code> or <code>None</code></dt>
+<dd>Discrete group variable. If provided, APO is computed within
+each group. If <code>None</code>, the APO is computed for the whole sample.
+The default is <code>None</code>.</dd>
+<dt><strong><code>name_groupvar</code></strong> :&ensp;<code>str</code> or <code>None</code></dt>
+<dd>The name of the group variable. Needs to be provided only if
+<code>groupvar</code> is provided. The default is <code>None</code>.</dd>
+<dt><strong><code>trim</code></strong> :&ensp;<code>int, float</code> or <code>array-like</code> of <code>shape (n_samples,)</code></dt>
+<dd>
+<p>The trimming variable can be provided in these ways:</p>
+<ul>
+<li><code>int</code> or <code>float</code>: A fixed trimming threshold, e.g. trim
+all propensity scores below 0.01.</li>
+<li><code>array-like</code>: A bool array indicating which observations to
+trim (observations with <code>True</code> are trimmed)</li>
+</ul>
+<p>The default is 0 (no trimming).</p>
+</dd>
+</dl></div>
+</dd>
+<dt id="dynamicDML.dml2periods.compute_GAPOmAPO"><code class="name flex">
+<span>def <span class="ident">compute_GAPOmAPO</span></span>(<span>self, d1treat, d2treat, groupvar, name_groupvar, trim=0)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Compute difference between group average potential outcome and
+average potential outcome (GAPOmAPO) from fitted scores of a
+particular sequence.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>d1treat</code></strong> :&ensp;<code>int</code> or <code>str</code></dt>
+<dd>Name of counterfactual treatment in first period.</dd>
+<dt><strong><code>d2treat</code></strong> :&ensp;<code>int</code> or <code>str</code></dt>
+<dd>Name of counterfactual treatment in second period.</dd>
+<dt><strong><code>groupvar</code></strong> :&ensp;<code>array-like</code> of <code>shape (n_samples,)</code> or <code>None</code></dt>
+<dd>Discrete group variable. If provided, APO is computed within
+each group. If <code>None</code>, the APO is computed for the whole sample.
+The default is <code>None</code>.</dd>
+<dt><strong><code>name_groupvar</code></strong> :&ensp;<code>str</code> or <code>None</code></dt>
+<dd>The name of the group variable. Needs to be provided only if
+<code>groupvar</code> is provided. The default is <code>None</code>.</dd>
+<dt><strong><code>trim</code></strong> :&ensp;<code>int, float</code> or <code>array-like</code> of <code>shape (n_samples,)</code></dt>
+<dd>
+<p>The trimming variable can be provided in these ways:</p>
+<ul>
+<li><code>int</code> or <code>float</code>: A fixed trimming threshold, e.g. trim
+all propensity scores below 0.01.</li>
+<li><code>array-like</code>: A bool array indicating which observations to
+trim (observations with <code>True</code> are trimmed)</li>
+</ul>
+<p>The default is 0 (no trimming).</p>
+</dd>
+</dl></div>
+</dd>
+<dt id="dynamicDML.dml2periods.compute_ATE"><code class="name flex">
+<span>def <span class="ident">compute_ATE</span></span>(<span>self, d1treat, d2treat, d1control, d2control, groupvar=None, name_groupvar=None, trim=0)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Compute (group) average treatment effect (ATE) from fitted scores of a
+particular sequence.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>d1treat</code></strong> :&ensp;<code>int</code> or <code>str</code></dt>
+<dd>Name of counterfactual first period treatment of treatment group.</dd>
+<dt><strong><code>d2treat</code></strong> :&ensp;<code>int</code> or <code>str</code></dt>
+<dd>Name of counterfactual second period treatment of treatment group.</dd>
+<dt><strong><code>d1control</code></strong> :&ensp;<code>int</code> or <code>str</code></dt>
+<dd>Name of counterfactual first period treatment of control group.</dd>
+<dt><strong><code>d2control</code></strong> :&ensp;<code>int</code> or <code>str</code></dt>
+<dd>Name of counterfactual second period treatment of control group.</dd>
+<dt><strong><code>groupvar</code></strong> :&ensp;<code>array-like</code> of <code>shape (n_samples,)</code> or <code>None</code></dt>
+<dd>Discrete group variable. If provided, APO is computed within
+each group. If <code>None</code>, the APO is computed for the whole sample.
+The default is <code>None</code>.</dd>
+<dt><strong><code>name_groupvar</code></strong> :&ensp;<code>str</code> or <code>None</code></dt>
+<dd>The name of the group variable. Needs to be provided only if
+<code>groupvar</code> is provided. The default is <code>None</code>.</dd>
+<dt><strong><code>trim</code></strong> :&ensp;<code>int, float</code> or <code>array-like</code> of <code>shape (n_samples,)</code></dt>
+<dd>
+<p>The trimming variable can be provided in these ways:</p>
+<ul>
+<li><code>int</code> or <code>float</code>: A fixed trimming threshold, e.g. trim
+all propensity scores below 0.01.</li>
+<li><code>array-like</code>: A bool array indicating which observations to
+trim (observations with <code>True</code> are trimmed)</li>
+</ul>
+<p>The default is 0 (no trimming).</p>
+</dd>
+</dl></div>
+</dd>
+<dt id="dynamicDML.dml2periods.compute_GATEmATE"><code class="name flex">
+<span>def <span class="ident">compute_GATEmATE</span></span>(<span>self, d1treat, d2treat, d1control, d2control, groupvar, name_groupvar, trim=0)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Compute difference between group average treatment effect and
+average treatment effect (GATEmATE) from fitted scores of a
+particular sequence.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>d1treat</code></strong> :&ensp;<code>int</code> or <code>str</code></dt>
+<dd>Name of counterfactual first period treatment of treatment group.</dd>
+<dt><strong><code>d2treat</code></strong> :&ensp;<code>int</code> or <code>str</code></dt>
+<dd>Name of counterfactual second period treatment of treatment group.</dd>
+<dt><strong><code>d1control</code></strong> :&ensp;<code>int</code> or <code>str</code></dt>
+<dd>Name of counterfactual first period treatment of control group.</dd>
+<dt><strong><code>d2control</code></strong> :&ensp;<code>int</code> or <code>str</code></dt>
+<dd>Name of counterfactual second period treatment of control group.</dd>
+<dt><strong><code>groupvar</code></strong> :&ensp;<code>array-like</code> of <code>shape (n_samples,)</code> or <code>None</code></dt>
+<dd>Discrete group variable. If provided, APO is computed within
+each group. If <code>None</code>, the APO is computed for the whole sample.
+The default is <code>None</code>.</dd>
+<dt><strong><code>name_groupvar</code></strong> :&ensp;<code>str</code> or <code>None</code></dt>
+<dd>The name of the group variable. Needs to be provided only if
+<code>groupvar</code> is provided. The default is <code>None</code>.</dd>
+<dt><strong><code>trim</code></strong> :&ensp;<code>int, float</code> or <code>array-like</code> of <code>shape (n_samples,)</code></dt>
+<dd>
+<p>The trimming variable can be provided in these ways:</p>
+<ul>
+<li><code>int</code> or <code>float</code>: A fixed trimming threshold, e.g. trim
+all propensity scores below 0.01.</li>
+<li><code>array-like</code>: A bool array indicating which observations to
+trim (observations with <code>True</code> are trimmed)</li>
+</ul>
+<p>The default is 0 (no trimming).</p>
+</dd>
+</dl></div>
+</dd>
+<dt id="dynamicDML.dml2periods.summary"><code class="name flex">
+<span>def <span class="ident">summary</span></span>(<span>self, d1treat, d2treat, d1control=None, d2control=None, name_groupvar=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Print summary of a particular (group) average potential outcome or
+treatment effect (APO/GAPO/ATE/GATE) without recomputing it.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>d1treat</code></strong> :&ensp;<code>int</code> or <code>str</code></dt>
+<dd>Name of counterfactual first period treatment of treatment group.</dd>
+<dt><strong><code>d2treat</code></strong> :&ensp;<code>int</code> or <code>str</code></dt>
+<dd>Name of counterfactual second period treatment of treatment group.</dd>
+<dt><strong><code>d1control</code></strong> :&ensp;<code>int</code> or <code>str</code> or <code>None</code></dt>
+<dd>Name of counterfactual first period treatment of control group.
+<code>None</code> for (group) average potential outcome.
+The default is <code>None</code>.</dd>
+<dt><strong><code>d2control</code></strong> :&ensp;<code>int</code> or <code>str</code> or <code>None</code></dt>
+<dd>Name of counterfactual second period treatment of control group.
+<code>None</code> for (group) average potential outcome.
+The default is <code>None</code>.</dd>
+<dt><strong><code>name_groupvar</code></strong> :&ensp;<code>str</code> or <code>None</code></dt>
+<dd>The name of the group variable. Needs to be provided only if
+GAPO or GATE should be printed. The default is <code>None</code>.</dd>
+</dl></div>
+</dd>
+<dt id="dynamicDML.dml2periods.plot_pscores"><code class="name flex">
+<span>def <span class="ident">plot_pscores</span></span>(<span>self,<br>d1treat,<br>d2treat,<br>trim=0,<br>title='Propensity Score Density Plots',<br>align_xlim=False,<br>stat='density',<br>common_bins=False,<br>prog_dict=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Plot propensity score densities of a particular sequence.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>d1treat</code></strong> :&ensp;<code>int</code> or <code>str</code></dt>
+<dd>Name of counterfactual treatment in first period.</dd>
+<dt><strong><code>d2treat</code></strong> :&ensp;<code>int</code> or <code>str</code></dt>
+<dd>Name of counterfactual treatment in second period.</dd>
+<dt><strong><code>trim</code></strong> :&ensp;<code>int, float</code> or <code>array-like</code> of <code>shape (n_samples,)</code></dt>
+<dd>
+<p>The trimming variable can be provided in these ways:</p>
+<ul>
+<li><code>int</code> or <code>float</code>: A fixed trimming threshold, e.g. trim
+all propensity scores below 0.01.</li>
+<li><code>array-like</code>: A bool array indicating which observations to
+trim (observations with <code>True</code> are trimmed)</li>
+</ul>
+<p>The default is 0 (no trimming).</p>
+</dd>
+<dt><strong><code>title</code></strong> :&ensp;<code>str</code></dt>
+<dd>Title of the plot. The default is
+<code>"Propensity Score Density Plots"</code>.</dd>
+<dt><strong><code>align_xlim</code></strong> :&ensp;<code>bool</code></dt>
+<dd>Whether to force the x-axis to range from 0 to 1. The default is
+<code>False</code>.</dd>
+<dt><strong><code>stat</code></strong> :&ensp;<code>str</code></dt>
+<dd>The aggregate statistic to compute in each bin. One of <code>count</code>,
+<code>frequency</code>, <code>probability</code>, <code>percent</code> or <code>density</code>. See
+<a href="https://seaborn.pydata.org/generated/seaborn.histplot.html" target="_blank"><code>seaborn.histplot</code></a>.
+for details. The default is <code>density</code>.</dd>
+<dt><strong><code>common_bins</code></strong> :&ensp;<code>bool</code></dt>
+<dd>If <code>True</code>, use the same bins for both histograms. The default is
+<code>False</code>.</dd>
+<dt><strong><code>prog_dict</code></strong> :&ensp;<code>dict</code> or <code>None</code></dt>
+<dd>Dictionary mapping program identifiers to names. The default is
+<code>None</code>.</dd>
+</dl></div>
+</dd>
+<dt id="dynamicDML.dml2periods.joint_trimming"><code class="name flex">
+<span>def <span class="ident">joint_trimming</span></span>(<span>self, seq_list, trim, trim_product=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Apply joint trimming across several sequences</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>seq_list</code></strong> :&ensp;<code>list</code> of <code>str</code></dt>
+<dd>The list of sequences to be considered in trimming. The elements
+of the list should be strings of the type <code>'d1treat_d2treat'</code>.</dd>
+<dt><strong><code>trim</code></strong> :&ensp;<code>tuple</code> of <code>integers</code> of <code>length 2</code></dt>
+<dd>A tuple inidating the quantiles used for joint trimming. For
+example, <code>(0, 1)</code> would implement min-max trimming, i.e. all
+observations with propensity score smaller than the largest
+minimum propensity score are deleted (and vice versa).</dd>
+<dt><strong><code>trim_product</code></strong> :&ensp;<code>bool</code></dt>
+<dd>Whether to only trim with respect to the first-period and
+second-period propensity scores individually or also consider the
+product of the propensity scores across periods. The default is
+<code>False</code>.</dd>
+</dl></div>
+</dd>
+</dl>
+</dd>
+<dt id="dynamicDML.FlamlRegressor"><code class="flex name class">
+<span>class <span class="ident">FlamlRegressor</span></span>
+<span>(</span><span>time, estimator_list, metric, *args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Initialize instance of
+<a href="https://microsoft.github.io/FLAML/docs/reference/automl/automl" target="_blank"><code>flaml.AutoML</code></a>
+for regression to be used for
+tuning DML nuisance functions. See the
+<a href="https://microsoft.github.io/FLAML/" target="_blank">FLAML documentation</a>
+for details.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>time</code></strong> :&ensp;<code>float</code></dt>
+<dd>A float number of the time budget in seconds.</dd>
+<dt><strong><code>estimator_list</code></strong> :&ensp;<code>List</code> of <code>strings</code></dt>
+<dd>Estimator names, e.g. <code>['lgbm', 'xgboost', 'xgb_limitdepth',
+'catboost', 'rf', 'extra_tree']</code>
+or
+<code>['auto']</code>.</dd>
+<dt><strong><code>metric</code></strong> :&ensp;<code>str</code></dt>
+<dd>A string of the metric name or a function, e.g., <code>'accuracy',
+'roc_auc', 'roc_auc_ovr', 'roc_auc_ovo', 'roc_auc_weighted',
+'roc_auc_ovo_weighted', 'roc_auc_ovr_weighted', 'f1', 'micro_f1',
+'macro_f1', 'log_loss', 'mae', 'mse', 'r2', 'mape'</code>. Default is
+<code>'auto'</code>.</dd>
+</dl></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>sklearn.base.BaseEstimator</li>
+<li>sklearn.utils._estimator_html_repr._HTMLDocumentationLinkMixin</li>
+<li>sklearn.utils._metadata_requests._MetadataRequester</li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="dynamicDML.FlamlRegressor.set_params"><code class="name flex">
+<span>def <span class="ident">set_params</span></span>(<span>self, **params)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="dynamicDML.FlamlRegressor.get_params"><code class="name flex">
+<span>def <span class="ident">get_params</span></span>(<span>self, deep=True)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="dynamicDML.FlamlRegressor.fit"><code class="name flex">
+<span>def <span class="ident">fit</span></span>(<span>self, X, y)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="dynamicDML.FlamlRegressor.predict"><code class="name flex">
+<span>def <span class="ident">predict</span></span>(<span>self, X)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="dynamicDML.FlamlRegressor.set_predict_request"><code class="name flex">
+<span>def <span class="ident">set_predict_request</span></span>(<span>self, X)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="dynamicDML.FlamlClassifier"><code class="flex name class">
+<span>class <span class="ident">FlamlClassifier</span></span>
+<span>(</span><span>time, estimator_list, metric, *args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Initialize instance of
+<a href="https://microsoft.github.io/FLAML/docs/reference/automl/automl" target="_blank"><code>flaml.AutoML</code></a>
+for classification to be used for
+tuning DML nuisance functions. See the
+<a href="https://microsoft.github.io/FLAML/" target="_blank">FLAML documentation</a>
+for details.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>time</code></strong> :&ensp;<code>float</code></dt>
+<dd>A float number of the time budget in seconds.</dd>
+<dt><strong><code>estimator_list</code></strong> :&ensp;<code>List</code> of <code>strings</code></dt>
+<dd>Estimator names, e.g. <code>['lgbm', 'xgboost', 'xgb_limitdepth',
+'catboost', 'rf', 'extra_tree']</code>
+or
+<code>['auto']</code>.</dd>
+<dt><strong><code>metric</code></strong> :&ensp;<code>str</code></dt>
+<dd>A string of the metric name or a function, e.g., <code>'accuracy',
+'roc_auc', 'roc_auc_ovr', 'roc_auc_ovo', 'roc_auc_weighted',
+'roc_auc_ovo_weighted', 'roc_auc_ovr_weighted', 'f1', 'micro_f1',
+'macro_f1', 'log_loss', 'mae', 'mse', 'r2', 'mape'</code>. Default is
+<code>'auto'</code>.</dd>
+</dl></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>sklearn.base.BaseEstimator</li>
+<li>sklearn.utils._estimator_html_repr._HTMLDocumentationLinkMixin</li>
+<li>sklearn.utils._metadata_requests._MetadataRequester</li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="dynamicDML.FlamlClassifier.set_params"><code class="name flex">
+<span>def <span class="ident">set_params</span></span>(<span>self, **params)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="dynamicDML.FlamlClassifier.get_params"><code class="name flex">
+<span>def <span class="ident">get_params</span></span>(<span>self, deep=True)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="dynamicDML.FlamlClassifier.fit"><code class="name flex">
+<span>def <span class="ident">fit</span></span>(<span>self, X, y)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="dynamicDML.FlamlClassifier.predict_proba"><code class="name flex">
+<span>def <span class="ident">predict_proba</span></span>(<span>self, X)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="dynamicDML.FlamlClassifier.set_predict_proba_request"><code class="name flex">
+<span>def <span class="ident">set_predict_proba_request</span></span>(<span>self, X)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<div class="toc">
+<ul>
+<li><a href="#description">Description</a></li>
+<li><a href="#installation">Installation</a></li>
+<li><a href="#examples">Examples</a></li>
+<li><a href="#release-notes">Release Notes</a></li>
+<li><a href="#authors">Authors</a></li>
+<li><a href="#references">References</a></li>
+</ul>
+</div>
+<ul id="index">
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="dynamicDML.dyn_data_example" href="#dynamicDML.dyn_data_example">dyn_data_example</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="dynamicDML.dml2periods" href="#dynamicDML.dml2periods">dml2periods</a></code></h4>
+<ul class="two-column">
+<li><code><a title="dynamicDML.dml2periods.init_sequence" href="#dynamicDML.dml2periods.init_sequence">init_sequence</a></code></li>
+<li><code><a title="dynamicDML.dml2periods.sequence_summary" href="#dynamicDML.dml2periods.sequence_summary">sequence_summary</a></code></li>
+<li><code><a title="dynamicDML.dml2periods.drop_sequence" href="#dynamicDML.dml2periods.drop_sequence">drop_sequence</a></code></li>
+<li><code><a title="dynamicDML.dml2periods.fit_sequence" href="#dynamicDML.dml2periods.fit_sequence">fit_sequence</a></code></li>
+<li><code><a title="dynamicDML.dml2periods.tune_auto_sequence" href="#dynamicDML.dml2periods.tune_auto_sequence">tune_auto_sequence</a></code></li>
+<li><code><a title="dynamicDML.dml2periods.export_sequence" href="#dynamicDML.dml2periods.export_sequence">export_sequence</a></code></li>
+<li><code><a title="dynamicDML.dml2periods.import_sequence" href="#dynamicDML.dml2periods.import_sequence">import_sequence</a></code></li>
+<li><code><a title="dynamicDML.dml2periods.compute_APO" href="#dynamicDML.dml2periods.compute_APO">compute_APO</a></code></li>
+<li><code><a title="dynamicDML.dml2periods.compute_GAPOmAPO" href="#dynamicDML.dml2periods.compute_GAPOmAPO">compute_GAPOmAPO</a></code></li>
+<li><code><a title="dynamicDML.dml2periods.compute_ATE" href="#dynamicDML.dml2periods.compute_ATE">compute_ATE</a></code></li>
+<li><code><a title="dynamicDML.dml2periods.compute_GATEmATE" href="#dynamicDML.dml2periods.compute_GATEmATE">compute_GATEmATE</a></code></li>
+<li><code><a title="dynamicDML.dml2periods.summary" href="#dynamicDML.dml2periods.summary">summary</a></code></li>
+<li><code><a title="dynamicDML.dml2periods.plot_pscores" href="#dynamicDML.dml2periods.plot_pscores">plot_pscores</a></code></li>
+<li><code><a title="dynamicDML.dml2periods.joint_trimming" href="#dynamicDML.dml2periods.joint_trimming">joint_trimming</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="dynamicDML.FlamlRegressor" href="#dynamicDML.FlamlRegressor">FlamlRegressor</a></code></h4>
+<ul class="">
+<li><code><a title="dynamicDML.FlamlRegressor.set_params" href="#dynamicDML.FlamlRegressor.set_params">set_params</a></code></li>
+<li><code><a title="dynamicDML.FlamlRegressor.get_params" href="#dynamicDML.FlamlRegressor.get_params">get_params</a></code></li>
+<li><code><a title="dynamicDML.FlamlRegressor.fit" href="#dynamicDML.FlamlRegressor.fit">fit</a></code></li>
+<li><code><a title="dynamicDML.FlamlRegressor.predict" href="#dynamicDML.FlamlRegressor.predict">predict</a></code></li>
+<li><code><a title="dynamicDML.FlamlRegressor.set_predict_request" href="#dynamicDML.FlamlRegressor.set_predict_request">set_predict_request</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="dynamicDML.FlamlClassifier" href="#dynamicDML.FlamlClassifier">FlamlClassifier</a></code></h4>
+<ul class="">
+<li><code><a title="dynamicDML.FlamlClassifier.set_params" href="#dynamicDML.FlamlClassifier.set_params">set_params</a></code></li>
+<li><code><a title="dynamicDML.FlamlClassifier.get_params" href="#dynamicDML.FlamlClassifier.get_params">get_params</a></code></li>
+<li><code><a title="dynamicDML.FlamlClassifier.fit" href="#dynamicDML.FlamlClassifier.fit">fit</a></code></li>
+<li><code><a title="dynamicDML.FlamlClassifier.predict_proba" href="#dynamicDML.FlamlClassifier.predict_proba">predict_proba</a></code></li>
+<li><code><a title="dynamicDML.FlamlClassifier.set_predict_proba_request" href="#dynamicDML.FlamlClassifier.set_predict_proba_request">set_predict_proba_request</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.11.5</a>.</p>
+</footer>
+</body>
+</html>
