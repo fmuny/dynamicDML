@@ -7,7 +7,7 @@ developed in Bodory, Huber & Lafférs (2022)[^Bodory3] and Bradic, Ji & Zhang
 The `dynamicDML` package allows to flexibly estimate counterfactual outcomes
 and treatment effects of sequential policies from observational data, where
 treatment assignment may dynamically depend on time-varying characteristics.
-For a detailed overview of these methods, see Muny (2025).[^Muny3]
+For an overview of these methods, see Muny (2025).[^Muny3]
 
 Installation
 ----------------------------
