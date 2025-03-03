@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import os
+import gzip
 import mgzip
 import pickle
 import copy
@@ -523,7 +524,7 @@ class dml2periods:
         self.sequences[seq_name].is_tuned = True
         return self
 
-    def export_sequence(self, d1treat, d2treat, path):
+    def export_sequence(self, d1treat, d2treat, path, threads=1):
         """
         Export sequence object as compressed gzip file.
 
@@ -536,6 +537,10 @@ class dml2periods:
         path : str
             Path of directory where file should be saved. File will be saved
             with name ``d1treat_d2treat.gz`` in provided directory.
+        threads : int
+            Number of threads to be used to compress. Zero means using all
+            CPUs. For ``threads=1`` the basic gzip module is used instead of
+            the experimental mgzip module. The default is 1.
         """
         # Check v ar types
         self._check_vartype(d1treat, (int, str), 'd1treat')
@@ -553,11 +558,16 @@ class dml2periods:
             os.makedirs(path)
         filename = path + "/" + seq_name + ".gz"
         os.makedirs(os.path.dirname(filename), exist_ok=True)
-        with mgzip.open(filename, "wb", thread=16) as f:
-            pickle.dump(self.sequences[seq_name], f)
+        if threads == 1:
+            with gzip.open(filename, "wb") as f:
+                pickle.dump(self.sequences[seq_name], f)
+        else:
+            with mgzip.open(filename, "wb", thread=threads) as f:
+                pickle.dump(self.sequences[seq_name], f)
         return self
 
-    def import_sequence(self, d1treat, d2treat, path, filename=None):
+    def import_sequence(
+            self, d1treat, d2treat, path, filename=None, threads=1):
         """
         Import sequence object from compressed gzip file.
 
@@ -572,6 +582,10 @@ class dml2periods:
         filename : str or None
             Name of file to import. Should have .gz extension. If `None`, the
             filename 'd1treat_d2treat' is assumed.
+        threads : int
+            Number of threads to be used to decompress. Zero means using all
+            CPUs. For ``threads=1`` the basic gzip module is used instead of
+            the experimental mgzip module. The default is 1.
         """
         # Check v ar types
         self._check_vartype(d1treat, (int, str), 'd1treat')
@@ -583,17 +597,20 @@ class dml2periods:
             filename = seq_name + ".gz"
         else:
             self._check_vartype(filename, str, 'filename')
-        with mgzip.open(
-                path + "/" + filename, "rb", thread=16) as f:
-            imported_sequence = pickle.load(f)
+        if threads == 1:
+            with gzip.open(path + "/" + filename, "rb") as f:
+                imported_sequence = pickle.load(f)
+        else:
+            with mgzip.open(path + "/" + filename, "rb", thread=threads) as f:
+                imported_sequence = pickle.load(f)
         typ = str(type(imported_sequence))
         pos_dot = typ.rfind(".") + 1
         pos_quote = typ.rfind("'")
         typname = typ[pos_dot:pos_quote]
-        if typname != 'dyntreatDML' and typname != 'stattreatDML':
+        if typname != '_dyntreatDML' and typname != '_stattreatDML':
             raise ValueError(
-                f'Imported sequence must be of type dyntreatDML or '
-                f'stattreatDML, got {typname}')
+                f'Imported sequence must be of type _dyntreatDML or '
+                f'_stattreatDML, got {typname}')
         self.sequences[seq_name] = imported_sequence
         return self
 
@@ -1386,7 +1403,6 @@ class dml2periods:
         cscores = cscores1 + cscores2 + y1d1te_con
         # Compute difference in scores per individual
         dml_scores = tscores - cscores
-        # Compute ATE
         scores_ate = dml_scores[(trimmed == 0)]
         ate_n = len(scores_ate)
         ate_effect = np.mean(scores_ate)
