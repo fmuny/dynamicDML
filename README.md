@@ -24,7 +24,7 @@ in the terminal. `dynamicDML` requires the following dependencies:
 * scipy>=1.15.2
 * seaborn>=0.13.2
 
-The implementation relies on Python 3.
+The implementation has been developed and tested in Python version 3.12.
 
 Examples
 ----------------------------
@@ -32,25 +32,33 @@ Examples
 The following examples demonstrate the basic usage of the `dynamicDML`
 package with default settings.
 ```
-# load dynamicDML package
+
+# load packages
 import dynamicDML
 import numpy as np
+from sklearn.linear_model import LinearRegression, LogisticRegression
 
+# Seed
+seed = 999
 # Generate data
-data = dyn_data_example(n=n, r_0=r_0, random_state=seed)
-
-# Define seed
-seed=999
+data = dynamicDML.dyn_data_example(n=2000, random_state=seed)
 
 # Define counterfactual contrasts of interest
 all_treat = np.ones_like(data['D1'])
 all_control = np.zeros_like(data['D1'])
 
-# Basic setting without tuning
-model = dml2periods(dynamic_confounding=True, random_state=seed)
+# Basic setting with Linear and Logistic regression
+model = dynamicDML.dml2periods(dynamic_confounding=True, random_state=seed)
 
 # APO treat-treat
-model = model.init_sequence(d1treat='treat', d2treat='treat')
+model = model.init_sequence(
+    d1treat='treat',
+    d2treat='treat',
+    MLmethod_p1=LogisticRegression(),
+    MLmethod_p2=LogisticRegression(),
+    MLmethod_mu=LinearRegression(),
+    MLmethod_nu=LinearRegression()
+    )
 model = model.fit_sequence(
     'treat', 'treat', data['Y'], data['D1'], data['D2'], data['X0'],
     data['X1'], g1t=all_treat, g2t=all_treat)
@@ -58,7 +66,14 @@ model.sequence_summary()
 model = model.compute_APO(d1treat='treat', d2treat='treat')
 
 # APO control-control
-model = model.init_sequence(d1treat='control', d2treat='control')
+model = model.init_sequence(
+    d1treat='control',
+    d2treat='control',
+    MLmethod_p1=LogisticRegression(),
+    MLmethod_p2=LogisticRegression(),
+    MLmethod_mu=LinearRegression(),
+    MLmethod_nu=LinearRegression()
+    )
 model = model.fit_sequence(
     'control', 'control', data['Y'], data['D1'], data['D2'], data['X0'],
     data['X1'], g1t=all_control, g2t=all_control)
@@ -68,6 +83,11 @@ model = model.compute_APO(d1treat='control', d2treat='control')
 # ATE treat-treat vs. control-control
 model = model.compute_ATE(
     d1treat='treat', d2treat='treat', d1control='control', d2control='control')
+
+# GATE treat-treat vs. control-control for first covariate
+model = model.compute_GATEmATE(
+    d1treat='treat', d2treat='treat', d1control='control', d2control='control',
+    groupvar=(data['X1'][:, 0] > 0), name_groupvar='X1')
 ```
 
 Release Notes

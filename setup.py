@@ -16,8 +16,8 @@ setup(
     long_description=long_description,
     author='Fabian Muny',
     author_email='fabian.muny@unisg.ch',
-    # url='https://orf-lab.github.io',
-    # download_url='https://github.com/fmuny/ORFpy/archive/refs/tags/v0.2.0.tar.gz',
+    # url='https://fmuny.github.io/dynamicDML/',
+    # download_url='https://github.com/fmuny/dynamicDML/archive/refs/tags/v0.1.0.tar.gz',
     keywords=['double machine learning', 'dynamic policy'],
     install_requires=[
         'flaml[automl]>=2.3.3',
@@ -34,8 +34,6 @@ setup(
         'Intended Audience :: Science/Research',
         'Topic :: Software Development :: Build Tools',
         'License :: OSI Approved :: MIT License',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.9',
-        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.12',
     ],
 )

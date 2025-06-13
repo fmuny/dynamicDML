@@ -64,28 +64,35 @@ For an overview of these methods, see Muny (2025).<sup id="fnref:Muny3"><a class
 <li>seaborn&gt;=0.13.2</li>
 </ul>
 <p>The implementation relies on Python 3.</p>
-<h2 id="examples">Examples</h2>
+<h2 id="basic-example">Basic Example</h2>
 <p>The following examples demonstrate the basic usage of the <code><a title="dynamicDML" href="#dynamicDML">dynamicDML</a></code>
-package with default settings.</p>
-<pre><code># load dynamicDML package
+package.</p>
+<pre><code># load packages
 import dynamicDML
 import numpy as np
+from sklearn.linear_model import LinearRegression, LogisticRegression
 
+# Seed
+seed = 999
 # Generate data
-data = dyn_data_example(n=n, r_0=r_0, random_state=seed)
-
-# Define seed
-seed=999
+data = dynamicDML.dyn_data_example(n=2000, random_state=seed)
 
 # Define counterfactual contrasts of interest
 all_treat = np.ones_like(data['D1'])
 all_control = np.zeros_like(data['D1'])
 
-# Basic setting without tuning
-model = dml2periods(dynamic_confounding=True, random_state=seed)
+# Basic setting with Linear and Logistic regression
+model = dynamicDML.dml2periods(dynamic_confounding=True, random_state=seed)
 
 # APO treat-treat
-model = model.init_sequence(d1treat='treat', d2treat='treat')
+model = model.init_sequence(
+    d1treat='treat',
+    d2treat='treat',
+    MLmethod_p1=LogisticRegression(),
+    MLmethod_p2=LogisticRegression(),
+    MLmethod_mu=LinearRegression(),
+    MLmethod_nu=LinearRegression()
+    )
 model = model.fit_sequence(
     'treat', 'treat', data['Y'], data['D1'], data['D2'], data['X0'],
     data['X1'], g1t=all_treat, g2t=all_treat)
@@ -93,7 +100,14 @@ model.sequence_summary()
 model = model.compute_APO(d1treat='treat', d2treat='treat')
 
 # APO control-control
-model = model.init_sequence(d1treat='control', d2treat='control')
+model = model.init_sequence(
+    d1treat='control',
+    d2treat='control',
+    MLmethod_p1=LogisticRegression(),
+    MLmethod_p2=LogisticRegression(),
+    MLmethod_mu=LinearRegression(),
+    MLmethod_nu=LinearRegression()
+    )
 model = model.fit_sequence(
     'control', 'control', data['Y'], data['D1'], data['D2'], data['X0'],
     data['X1'], g1t=all_control, g2t=all_control)
@@ -103,9 +117,158 @@ model = model.compute_APO(d1treat='control', d2treat='control')
 # ATE treat-treat vs. control-control
 model = model.compute_ATE(
     d1treat='treat', d2treat='treat', d1control='control', d2control='control')
+
+# GATE treat-treat vs. control-control for first covariate
+model = model.compute_GATEmATE(
+    d1treat='treat', d2treat='treat', d1control='control', d2control='control',
+    groupvar=(data['X1'][:, 0] &gt; 0), name_groupvar='X1')
+</code></pre>
+<h2 id="advanced-example">Advanced Example</h2>
+<p>The following examples demonstrate the usage of the <code><a title="dynamicDML" href="#dynamicDML">dynamicDML</a></code>
+package with tuning and trimming.</p>
+<pre><code># %% Load packages
+
+import numpy as np
+from dynamicDML import (
+    dyn_data_example, dml2periods, FlamlRegressor, FlamlClassifier)
+
+# %% Generate data
+seed = 999
+data_dict = dyn_data_example(n=2000, random_state=seed)
+
+x0 = data_dict['X0']
+d1 = data_dict['D1']
+x1 = data_dict['X1']
+d2 = data_dict['D2']
+y = data_dict['Y']
+y00 = data_dict['Y00']
+y10 = data_dict['Y10']
+y01 = data_dict['Y01']
+y11 = data_dict['Y11']
+
+# %% Oracle estimator
+
+# True ate = alpha_y11 + np.sum(gamma_y11_signal) - alpha_y00 = -3
+ate = -3
+print(f&quot;ATE_true = {ate:.3f}&quot;)
+ite = y11-y00
+
+# Oracle ATE (that has access to potential outcomes)
+ate_oracle = np.mean(ite)
+print(f&quot;ATE_oracle = {ate_oracle:.3}&quot;)
+
+# Difference-in-means estimator
+ate_DiM = np.mean(y[(d1 == 1) &amp; (d2 == 1)]) - np.mean(y[(d1 == 0) &amp; (d2 == 0)])
+print(f&quot;ATE_DiM = {ate_DiM:.3}&quot;)
+
+# E[y^{11}]
+print(f&quot;E[y^11]={np.mean(y11):.3}&quot;)
+print(f&quot;E[y|d_1=1, d_2=1]={np.mean(y[(d1 == 1) &amp; (d2 == 1)]):.3}&quot;)
+# -&gt; confounding because E[y^11] != E[y|d_1=1, d_2=1]
+
+# E[y^{11}]
+print(f&quot;E[y^00]={np.mean(y00):.3}&quot;)
+print(f&quot;E[y|d_1=0, d_2=0]={np.mean(y[(d1 == 0) &amp; (d2 == 0)]):.3}&quot;)
+# -&gt; confounding because E[y^00] != E[y|d_1=0, d_2=0]
+
+# %% Estimate using dml2periods with tuned Random Forest
+
+# Initialize model
+model = dml2periods(dynamic_confounding=True, random_state=seed)
+model.sequence_summary()
+
+# APO treat-treat
+# 1.) Define policy of interest
+all_treat = np.ones_like(d1)
+# 2.) Initialize sequence
+model = model.init_sequence(
+    d1treat='treat',
+    d2treat='treat',
+    MLmethod_p1=FlamlClassifier(
+        time=10, estimator_list=['rf'], metric=&quot;log_loss&quot;, verbose=2,
+        random_state=seed),
+    MLmethod_p2=FlamlClassifier(
+        time=10, estimator_list=['rf'], metric=&quot;log_loss&quot;, verbose=2,
+        random_state=seed),
+    MLmethod_mu=FlamlRegressor(
+        time=10, estimator_list=['rf'], metric=&quot;mse&quot;, verbose=2,
+        random_state=seed),
+    MLmethod_nu=FlamlRegressor(
+        time=10, estimator_list=['rf'], metric=&quot;mse&quot;, verbose=2,
+        random_state=seed))
+model.sequence_summary()
+# 3.) Tune nuisance learners (takes 10 seconds per nuisance function)
+model = model.tune_auto_sequence(
+    'treat', 'treat', y, d1, d2, x0, x1, g1t=all_treat, g2t=all_treat)
+model.sequence_summary()
+# 4.) Fit nuisance learners
+model = model.fit_sequence(
+    'treat', 'treat', y, d1, d2, x0, x1, g1t=all_treat, g2t=all_treat)
+model.sequence_summary()
+# 5.) Compute APO
+model = model.compute_APO(d1treat='treat', d2treat='treat')
+
+# APO control-control
+# 1.) Define policy of interest
+all_control = np.zeros_like(d1)
+# 2.) Initialize sequence
+model = model.init_sequence(
+    d1treat='control',
+    d2treat='control',
+    MLmethod_p1=FlamlClassifier(
+        time=10, estimator_list=['rf'], metric=&quot;log_loss&quot;, verbose=2,
+        random_state=seed),
+    MLmethod_p2=FlamlClassifier(
+        time=10, estimator_list=['rf'], metric=&quot;log_loss&quot;, verbose=2,
+        random_state=seed),
+    MLmethod_mu=FlamlRegressor(
+        time=10, estimator_list=['rf'], metric=&quot;mse&quot;, verbose=2,
+        random_state=seed),
+    MLmethod_nu=FlamlRegressor(
+        time=10, estimator_list=['rf'], metric=&quot;mse&quot;, verbose=2,
+        random_state=seed))
+model.sequence_summary()
+# 3.) Tune nuisance learners (takes 10 seconds per nuisance function)
+model = model.tune_auto_sequence(
+    'control', 'control', y, d1, d2, x0, x1, g1t=all_control, g2t=all_control)
+model.sequence_summary()
+# 4.) Fit nuisance learners
+model = model.fit_sequence(
+    'control', 'control', y, d1, d2, x0, x1, g1t=all_control, g2t=all_control)
+model.sequence_summary()
+# 5.) Compute APO
+model = model.compute_APO(d1treat='control', d2treat='control')
+
+# Treatment effects treat-treat vs. control-control
+# ATE
+model = model.compute_ATE(
+    d1treat='treat', d2treat='treat', d1control='control', d2control='control')
+
+# GATE for X1 &gt; 0
+model = model.compute_ATE(
+    d1treat='treat', d2treat='treat', d1control='control', d2control='control',
+    groupvar=(x0[:, 0] &gt; 0), name_groupvar='x01', trim=0)
+# GATE minus ATE for X1 &gt; 0
+model = model.compute_GATEmATE(
+    d1treat='treat', d2treat='treat', d1control='control', d2control='control',
+    groupvar=(x0[:, 0] &gt; 0), name_groupvar='x01', trim=0)
+
+# Plot propensity scores
+model.plot_pscores('treat', 'treat')
+model.plot_pscores('control', 'control')
+
+# Joint minmax trimming
+trim = model.joint_trimming(['treat_treat', 'control_control'], trim=(0, 1))
+# Re-fit
+model = model.compute_ATE(
+    d1treat='treat', d2treat='treat', d1control='control', d2control='control',
+    trim=trim)
+# compare propensity scores
+model.plot_pscores('treat', 'treat')
+model.plot_pscores('treat', 'treat', trim=trim)
 </code></pre>
 <h2 id="release-notes">Release Notes</h2>
-<p>Version 0.1.0: Initial release of <code><a title="dynamicDML" href="#dynamicDML">dynamicDML</a></code> python package</p>
+<p>Version 0.1.0: Initial (experimental) release of <code><a title="dynamicDML" href="#dynamicDML">dynamicDML</a></code> python package</p>
 <h2 id="authors">Authors</h2>
 <p>Fabian Muny</p>
 <h2 id="references">References</h2>
@@ -411,7 +574,7 @@ learning for treatment and structural parameters.&#160;<a class="footnote-backre
 <h3>Methods</h3>
 <dl>
 <dt id="dynamicDML.dml2periods.init_sequence"><code class="name flex">
-<span>def <span class="ident">init_sequence</span></span>(<span>self,<br>d1treat,<br>d2treat,<br>MLmethod_p1=RandomForestClassifier(),<br>MLmethod_p2=RandomForestClassifier(),<br>MLmethod_mu=RandomForestRegressor(),<br>MLmethod_nu=RandomForestRegressor(),<br>replace=False)</span>
+<span>def <span class="ident">init_sequence</span></span>(<span>self,<br>d1treat,<br>d2treat,<br>MLmethod_p1=RandomForestClassifier(random_state=999),<br>MLmethod_p2=RandomForestClassifier(random_state=999),<br>MLmethod_mu=RandomForestRegressor(random_state=999),<br>MLmethod_nu=RandomForestRegressor(random_state=999),<br>replace=False)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Initialize a counterfactual treatment sequence.</p>
@@ -574,7 +737,7 @@ used to implement dynamic policies.</dd>
 </dl></div>
 </dd>
 <dt id="dynamicDML.dml2periods.export_sequence"><code class="name flex">
-<span>def <span class="ident">export_sequence</span></span>(<span>self, d1treat, d2treat, path)</span>
+<span>def <span class="ident">export_sequence</span></span>(<span>self, d1treat, d2treat, path, threads=1)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Export sequence object as compressed gzip file.</p>
@@ -587,10 +750,14 @@ used to implement dynamic policies.</dd>
 <dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
 <dd>Path of directory where file should be saved. File will be saved
 with name <code>d1treat_d2treat.gz</code> in provided directory.</dd>
+<dt><strong><code>threads</code></strong> :&ensp;<code>int</code></dt>
+<dd>Number of threads to be used to compress. Zero means using all
+CPUs. For <code>threads=1</code> the basic gzip module is used instead of
+the experimental mgzip module. The default is 1.</dd>
 </dl></div>
 </dd>
 <dt id="dynamicDML.dml2periods.import_sequence"><code class="name flex">
-<span>def <span class="ident">import_sequence</span></span>(<span>self, d1treat, d2treat, path, filename=None)</span>
+<span>def <span class="ident">import_sequence</span></span>(<span>self, d1treat, d2treat, path, filename=None, threads=1)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Import sequence object from compressed gzip file.</p>
@@ -605,6 +772,10 @@ with name <code>d1treat_d2treat.gz</code> in provided directory.</dd>
 <dt><strong><code>filename</code></strong> :&ensp;<code>str</code> or <code>None</code></dt>
 <dd>Name of file to import. Should have .gz extension. If <code>None</code>, the
 filename 'd1treat_d2treat' is assumed.</dd>
+<dt><strong><code>threads</code></strong> :&ensp;<code>int</code></dt>
+<dd>Number of threads to be used to decompress. Zero means using all
+CPUs. For <code>threads=1</code> the basic gzip module is used instead of
+the experimental mgzip module. The default is 1.</dd>
 </dl></div>
 </dd>
 <dt id="dynamicDML.dml2periods.compute_APO"><code class="name flex">
@@ -977,7 +1148,8 @@ or
 <ul>
 <li><a href="#description">Description</a></li>
 <li><a href="#installation">Installation</a></li>
-<li><a href="#examples">Examples</a></li>
+<li><a href="#basic-example">Basic Example</a></li>
+<li><a href="#advanced-example">Advanced Example</a></li>
 <li><a href="#release-notes">Release Notes</a></li>
 <li><a href="#authors">Authors</a></li>
 <li><a href="#references">References</a></li>

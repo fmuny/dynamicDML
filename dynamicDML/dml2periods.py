@@ -204,10 +204,10 @@ class dml2periods:
             self,
             d1treat,
             d2treat,
-            MLmethod_p1=RandomForestClassifier(),
-            MLmethod_p2=RandomForestClassifier(),
-            MLmethod_mu=RandomForestRegressor(),
-            MLmethod_nu=RandomForestRegressor(),
+            MLmethod_p1=RandomForestClassifier(random_state=999),
+            MLmethod_p2=RandomForestClassifier(random_state=999),
+            MLmethod_mu=RandomForestRegressor(random_state=999),
+            MLmethod_nu=RandomForestRegressor(random_state=999),
             replace=False):
         """
         Initialize a counterfactual treatment sequence.

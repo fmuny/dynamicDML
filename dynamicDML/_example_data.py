@@ -140,7 +140,9 @@ def dyn_data_example(
         'X0', 'p1', 'D1', 'X1_d10', 'X1_d11', 'X1', 'p2_d10', 'p2_d11', 'p2',
         'D2', 'Y', 'Y00', 'Y10', 'Y01', 'Y11']
     variables = [
-        X0, p1, D1, X1_d10, X1_d11, X1, p2_d10, p2_d11, p2, D2, Y, Y00, Y10,
-        Y01, Y11]
+        X0, p1.reshape(-1), D1.reshape(-1), X1_d10, X1_d11, X1,
+        p2_d10.reshape(-1), p2_d11.reshape(-1), p2.reshape(-1),
+        D2.reshape(-1), Y.reshape(-1), Y00.reshape(-1), Y10.reshape(-1),
+        Y01.reshape(-1), Y11.reshape(-1)]
     return_dict = dict(zip(colnames, variables))
     return return_dict
