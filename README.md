@@ -1,11 +1,10 @@
 # dynamicDML
 A Python implementation of dynamic Double Machine Learning (DML) as
-developed in Bodory, Huber & Lafférs (2022)[^Bodory3] and Bradic, Ji & Zhang
-(2024).[^Bradic3]
-The `dynamicDML` package allows to flexibly estimate counterfactual outcomes
+developed in [Bodory, Huber & Lafférs (2022)](https://doi.org/10.1093/ectj/utac018) and [Bradic, Ji & Zhang
+(2024)](https://doi.org/10.1214/24-AOS2352). The `dynamicDML` package allows to flexibly estimate counterfactual outcomes
 and treatment effects of sequential policies from observational data, where
 treatment assignment may dynamically depend on time-varying characteristics.
-For a detailed overview of these methods, see Muny (2025).[^Muny3]
+For a detailed overview of these methods, see [Muny (2025)](https://arxiv.org/abs/2506.11960).
 
 Installation
 ----------------------------
@@ -92,17 +91,11 @@ model = model.compute_GATEmATE(
 
 Release Notes
 ----------------------------
-Version 0.1.0: Initial release of `dynamicDML` python package
+- Version 0.1.0: Unpublished
+- Version 0.2.0: Initial release of `dynamicDML` python package
 
 References
 ----------------------------
-[^Bodory3]:
-    Bodory, H., Huber, M., & Lafférs, L. (2022). Evaluating (weighted) dynamic
-    treatment effects by double machine learning. The Econometrics Journal,
-    25(3), 648.
-[^Bradic3]:
-    Bradic, J., Ji, W., & Zhang, Y. (2024). High-dimensional inference for
-    dynamic treatment effects. The Annals of Statistics, 52(2), 415–440.
-[^Muny3]:
-    Muny, F. (2025). Evaluating Program Sequences with Double Machine Learning:
-    An Application to Labor Market Policies. Manuscript in preparation.
+- Bodory, H., Huber, M., & Laffers, L. (2022). Evaluating (weighted) dynamic treatment effects by double machine learning. The Econometrics Journal, 25(3), 648. [[1]](https://doi.org/10.1093/ectj/utac018)
+- Bradic, J., Ji, W., & Zhang, Y. (2024). High-dimensional inference for dynamic treatment effects. The Annals of Statistics, 52(2), 415-440. [[2]](https://doi.org/10.1214/24-AOS2352) 
+- Muny, F. (2025). Evaluating Program Sequences with Double Machine Learning: An Application to Labor Market Policies. arXiv preprint arXiv:2506.11960. [[3]](https://arxiv.org/abs/2506.11960)

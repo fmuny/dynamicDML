@@ -240,7 +240,8 @@ model.plot_pscores('treat', 'treat', trim=trim)
 
 Release Notes
 ----------------------------
-Version 0.1.0: Initial (experimental) release of `dynamicDML` python package
+- Version 0.1.0: Unpublished
+- Version 0.2.0: Initial (experimental) release of `dynamicDML` python package
 
 Authors
 ----------------------------
@@ -257,7 +258,7 @@ References
     dynamic treatment effects. The Annals of Statistics, 52(2), 415–440.
 [^Muny3]:
     Muny, F. (2025). Evaluating Program Sequences with Double Machine Learning:
-    An Application to Labor Market Policies. Manuscript in preparation.
+    An Application to Labor Market Policies. arXiv preprint arXiv:2506.11960.
 """
 
 from dynamicDML.dml2periods import dml2periods
@@ -265,7 +266,7 @@ from dynamicDML._example_data import dyn_data_example
 from dynamicDML._flaml_estimators import FlamlRegressor, FlamlClassifier
 __all__ = [
     "dml2periods", "dyn_data_example", "FlamlRegressor", "FlamlClassifier"]
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 __module__ = 'dynamicDML'
 __author__ = "Fabian Muny"
 __copyright__ = "Copyright (c) 2025, Fabian Muny"

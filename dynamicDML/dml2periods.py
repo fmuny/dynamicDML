@@ -167,8 +167,7 @@ class dml2periods:
             Econometrics Journal, 25(3), 628–648.
         [^Muny2]:
             Muny, F. (2025). Evaluating Program Sequences with Double Machine
-            Learning: An Application to Labor Market Policies. Manuscript in
-            preparation.
+            Learning: An Application to Labor Market Policies. arXiv preprint arXiv:2506.11960.
         [^Chern2]:
             Chernozhukov, V., Chetverikov, D., Demirer, M., Duflo, E., Hansen,
             C., Newey, W., & Robins, J. (2018). Double/debiased machine
