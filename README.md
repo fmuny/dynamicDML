@@ -1,6 +1,6 @@
 # dynamicDML
 A Python implementation of dynamic Double Machine Learning (DML) as
-developed in [Bodory, Huber & Lafférs (2022)](https://doi.org/10.1093/ectj/utac018) and [Bradic, Ji & Zhang
+developed in [Bodory, Huber & Laffers (2022)](https://doi.org/10.1093/ectj/utac018) and [Bradic, Ji & Zhang
 (2024)](https://doi.org/10.1214/24-AOS2352). The `dynamicDML` package allows to flexibly estimate counterfactual outcomes
 and treatment effects of sequential policies from observational data, where
 treatment assignment may dynamically depend on time-varying characteristics.
