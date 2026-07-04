@@ -5,6 +5,8 @@ import gzip
 import mgzip
 import pickle
 import copy
+import json
+from dataclasses import dataclass
 from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
 from sklearn.utils.validation import check_array
 from sklearn.utils import check_X_y
@@ -12,6 +14,42 @@ import matplotlib.pyplot as plt
 from scipy.stats import norm
 import seaborn as sns
 from dynamicDML._base import _dyntreatDML, _stattreatDML
+
+
+@dataclass
+class _FittedSequenceState:
+    """
+    Lightweight post-fit sequence state.
+
+    This stores only the fitted score ingredients needed by post-fit methods
+    such as compute_APO(), compute_ATE(), plot_pscores(), and joint_trimming().
+    It intentionally omits nuisance learner objects and tuning state.
+    """
+    d1treat: int | str
+    d2treat: int | str
+    is_static: bool
+    is_fitted: bool
+    is_tuned: bool
+    is_lightweight: bool
+    y2: np.ndarray
+    g1t: np.ndarray
+    g2t: np.ndarray
+    d1tre: np.ndarray
+    d2tre: np.ndarray
+    psd1treat: np.ndarray
+    psd2treat: np.ndarray
+    y2d1d2treat: np.ndarray
+    y1d1treat: np.ndarray
+    tscores: np.ndarray
+    trimmed: np.ndarray
+    n_feat_x0: int | None = None
+    n_feat_x1: int | None = None
+    MLmethod_p1: object | None = None
+    MLmethod_p2: object | None = None
+    MLmethod_mu: object | None = None
+    MLmethod_nu: object | None = None
+    MLmethod_p: object | None = None
+    learner_info: dict | None = None
 
 
 class dml2periods:
@@ -327,6 +365,21 @@ class dml2periods:
             print(f"d1treat: {fst}, d2treat: {snd}, is_tuned: {tnd}, "
                   f"is_fitted: {ftd}")
             if methods:
+                if getattr(self.sequences[key], 'is_lightweight', False):
+                    learner_info = getattr(
+                        self.sequences[key], 'learner_info', None)
+                    if learner_info is None:
+                        print(" MLmethod: not exported in fitted-only sequence")
+                    else:
+                        for method_name, info in learner_info.items():
+                            if info is None:
+                                print(f" {method_name}: None")
+                            else:
+                                print(
+                                    f" {method_name}: {info['module']}."
+                                    f"{info['class']}("
+                                    f"params={info['params']})")
+                    continue
                 if self.dynamic_confounding:
                     print(f" MLmethod_p1: {self.sequences[key].MLmethod_p1}")
                     print(f" MLmethod_p2: {self.sequences[key].MLmethod_p2}")
@@ -415,6 +468,10 @@ class dml2periods:
             raise ValueError(
                 f'Sequence with d1treat={d1treat} and d2treat={d2treat} '
                 f'does not exist.')
+        if getattr(self.sequences[seq_name], 'is_lightweight', False):
+            raise ValueError(
+                f'Sequence {seq_name} was imported as fitted-only and cannot '
+                f'be refitted. Initialize the sequence again to run fit.')
         if self.dynamic_confounding:
             self.sequences[seq_name] = self.sequences[seq_name].fit(
                 y2, d1, d2, x0, x1, p1t=p1t, p2t=p2t, g1t=g1t, g2t=g2t)
@@ -490,6 +547,10 @@ class dml2periods:
             raise ValueError(
                 f'Sequence with d1treat={d1treat} and d2treat={d2treat} '
                 f'does not exist.')
+        if getattr(self.sequences[seq_name], 'is_lightweight', False):
+            raise ValueError(
+                f'Sequence {seq_name} was imported as fitted-only and cannot '
+                f'be tuned. Initialize the sequence again to run tuning.')
         # Create deepcopy
         to_tune = copy.deepcopy(self.sequences[seq_name])
         if self.dynamic_confounding:
@@ -523,7 +584,81 @@ class dml2periods:
         self.sequences[seq_name].is_tuned = True
         return self
 
-    def export_sequence(self, d1treat, d2treat, path, threads=1):
+    def _fitted_sequence_state(self, seq):
+        if not seq.is_fitted:
+            raise ValueError(
+                'fitted_only export requires a fitted sequence. Run '
+                'fit_sequence first or set fitted_only=False.')
+        return _FittedSequenceState(
+            d1treat=seq.d1treat,
+            d2treat=seq.d2treat,
+            is_static=getattr(seq, 'is_static', False),
+            is_fitted=seq.is_fitted,
+            is_tuned=getattr(seq, 'is_tuned', False),
+            is_lightweight=True,
+            y2=np.asarray(seq.y2),
+            g1t=np.asarray(seq.g1t),
+            g2t=np.asarray(seq.g2t),
+            d1tre=np.asarray(seq.d1tre),
+            d2tre=np.asarray(seq.d2tre),
+            psd1treat=np.asarray(seq.psd1treat),
+            psd2treat=np.asarray(seq.psd2treat),
+            y2d1d2treat=np.asarray(seq.y2d1d2treat),
+            y1d1treat=np.asarray(seq.y1d1treat),
+            tscores=np.asarray(seq.tscores),
+            trimmed=np.asarray(seq.trimmed),
+            n_feat_x0=getattr(seq, 'n_feat_x0', None),
+            n_feat_x1=getattr(seq, 'n_feat_x1', None),
+            learner_info=self._learner_info(seq))
+
+    def _json_safe(self, value):
+        try:
+            json.dumps(value)
+            return value
+        except TypeError:
+            return repr(value)
+
+    def _describe_estimator(self, estimator):
+        if estimator is None:
+            return None
+        params = None
+        if hasattr(estimator, 'get_params'):
+            try:
+                params = estimator.get_params(deep=False)
+            except TypeError:
+                params = estimator.get_params()
+            except Exception:
+                params = None
+        if params is not None:
+            params = {
+                key: self._json_safe(value)
+                for key, value in params.items()}
+        return {
+            'class': type(estimator).__name__,
+            'module': type(estimator).__module__,
+            'params': params}
+
+    def _learner_info(self, seq):
+        if getattr(seq, 'is_lightweight', False):
+            return getattr(seq, 'learner_info', None)
+        if getattr(seq, 'is_static', False):
+            return {
+                'MLmethod_p': self._describe_estimator(getattr(
+                    seq, 'MLmethod_p', None)),
+                'MLmethod_mu': self._describe_estimator(getattr(
+                    seq, 'MLmethod_mu', None))}
+        return {
+            'MLmethod_p1': self._describe_estimator(getattr(
+                seq, 'MLmethod_p1', None)),
+            'MLmethod_p2': self._describe_estimator(getattr(
+                seq, 'MLmethod_p2', None)),
+            'MLmethod_mu': self._describe_estimator(getattr(
+                seq, 'MLmethod_mu', None)),
+            'MLmethod_nu': self._describe_estimator(getattr(
+                seq, 'MLmethod_nu', None))}
+
+    def export_sequence(
+            self, d1treat, d2treat, path, threads=1, fitted_only=True):
         """
         Export sequence object as compressed gzip file.
 
@@ -540,11 +675,17 @@ class dml2periods:
             Number of threads to be used to compress. Zero means using all
             CPUs. For ``threads=1`` the basic gzip module is used instead of
             the experimental mgzip module. The default is 1.
+        fitted_only : bool
+            Whether to export only the post-fit score ingredients required by
+            methods that follow ``fit_sequence``. If ``False``, the full
+            sequence object, including nuisance learners and tuning state, is
+            exported. The default is `True`.
         """
-        # Check v ar types
+        # Check var types
         self._check_vartype(d1treat, (int, str), 'd1treat')
         self._check_vartype(d2treat, (int, str), 'd2treat')
         self._check_vartype(path, str, 'path')
+        self._check_vartype(fitted_only, bool, 'fitted_only')
         # Get sequence name: d1treat_d2treat
         seq_name = str(d1treat) + '_' + str(d2treat)
         # Check if sequence exists already
@@ -552,6 +693,11 @@ class dml2periods:
             raise ValueError(
                 f'Sequence with d1treat={d1treat} and d2treat={d2treat} '
                 f'does not exist.')
+        if fitted_only:
+            sequence_export = self._fitted_sequence_state(
+                self.sequences[seq_name])
+        else:
+            sequence_export = self.sequences[seq_name]
         # Create path if it does not exist yet
         if not os.path.exists(path):
             os.makedirs(path)
@@ -559,10 +705,10 @@ class dml2periods:
         os.makedirs(os.path.dirname(filename), exist_ok=True)
         if threads == 1:
             with gzip.open(filename, "wb") as f:
-                pickle.dump(self.sequences[seq_name], f)
+                pickle.dump(sequence_export, f)
         else:
             with mgzip.open(filename, "wb", thread=threads) as f:
-                pickle.dump(self.sequences[seq_name], f)
+                pickle.dump(sequence_export, f)
         return self
 
     def import_sequence(
@@ -586,7 +732,7 @@ class dml2periods:
             CPUs. For ``threads=1`` the basic gzip module is used instead of
             the experimental mgzip module. The default is 1.
         """
-        # Check v ar types
+        # Check var types
         self._check_vartype(d1treat, (int, str), 'd1treat')
         self._check_vartype(d2treat, (int, str), 'd2treat')
         self._check_vartype(path, str, 'path')
@@ -596,20 +742,22 @@ class dml2periods:
             filename = seq_name + ".gz"
         else:
             self._check_vartype(filename, str, 'filename')
+        full_filename = path + "/" + filename
         if threads == 1:
-            with gzip.open(path + "/" + filename, "rb") as f:
+            with gzip.open(full_filename, "rb") as f:
                 imported_sequence = pickle.load(f)
         else:
-            with mgzip.open(path + "/" + filename, "rb", thread=threads) as f:
+            with mgzip.open(full_filename, "rb", thread=threads) as f:
                 imported_sequence = pickle.load(f)
-        typ = str(type(imported_sequence))
-        pos_dot = typ.rfind(".") + 1
-        pos_quote = typ.rfind("'")
-        typname = typ[pos_dot:pos_quote]
-        if typname != '_dyntreatDML' and typname != '_stattreatDML':
+        allowed_types = (_dyntreatDML, _stattreatDML, _FittedSequenceState)
+        if not isinstance(imported_sequence, allowed_types):
+            typ = str(type(imported_sequence))
+            pos_dot = typ.rfind(".") + 1
+            pos_quote = typ.rfind("'")
+            typname = typ[pos_dot:pos_quote]
             raise ValueError(
                 f'Imported sequence must be of type _dyntreatDML or '
-                f'_stattreatDML, got {typname}')
+                f'_stattreatDML or _FittedSequenceState, got {typname}')
         self.sequences[seq_name] = imported_sequence
         return self
 
