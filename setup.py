@@ -23,6 +23,8 @@ setup(
         'matplotlib>=3.10.0',
         'mgzip>=0.2.1',
         'numpy>=2.2.3',
+        'optuna>=4.0.0',
+        'optuna-integration>=4.0.0',
         'pandas>=2.2.3',
         'scikit-learn>=1.6.1',
         'scipy>=1.15.2',

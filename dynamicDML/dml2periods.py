@@ -496,7 +496,9 @@ class dml2periods:
 
     def tune_auto_sequence(
             self, d1treat, d2treat, y2, d1, d2, x0, x1=None, p1t=None,
-            p2t=None, g1t=None, g2t=None):
+            p2t=None, g1t=None, g2t=None, method='flaml',
+            param_distributions=None, scoring=None, cv=5,
+            optuna_kwargs=None):
         """
         Tune initialized treatment sequence.
 
@@ -537,6 +539,21 @@ class dml2periods:
             If array provided, this will be used as counterfactual and
             ``d1treat`` serves only as a name of the counterfactual. Can be
             used to implement dynamic policies.
+        method : {'flaml', 'optuna'}
+            Tuning backend. FLAML is the default and keeps historical
+            behavior. Optuna tunes standard sklearn estimators with the
+            supplied search spaces.
+        param_distributions : dict or None
+            Optuna search spaces keyed by nuisance name. Use `p1`, `p2`, `mu`,
+            `nu` for dynamic confounding and `p`, `mu` for static confounding.
+        scoring : str, callable, dict or None
+            Scoring passed to ``OptunaSearchCV``. Can be nuisance-keyed.
+        cv : int, CV splitter, dict or None
+            Cross-validation strategy passed to ``OptunaSearchCV``. Can be
+            nuisance-keyed.
+        optuna_kwargs : dict or None
+            Additional keyword arguments for ``OptunaSearchCV``. Can be global
+            or nuisance-keyed.
         """
         self._check_vartype(d1treat, (int, str), 'd1treat')
         self._check_vartype(d2treat, (int, str), 'd2treat')
@@ -555,7 +572,9 @@ class dml2periods:
         to_tune = copy.deepcopy(self.sequences[seq_name])
         if self.dynamic_confounding:
             to_tune = to_tune.tune_auto(
-                y2, d1, d2, x0, x1, p1t=p1t, p2t=p2t, g1t=g1t, g2t=g2t)
+                y2, d1, d2, x0, x1, p1t=p1t, p2t=p2t, g1t=g1t, g2t=g2t,
+                method=method, param_distributions=param_distributions,
+                scoring=scoring, cv=cv, optuna_kwargs=optuna_kwargs)
             if p1t is None:
                 self.sequences[seq_name].MLmethod_p1 = to_tune['p1'][
                     'estimator']['treat']
@@ -572,7 +591,9 @@ class dml2periods:
                 'treat']
         else:
             to_tune = to_tune.tune_auto(
-                y2, d1, d2, x0, pt=p1t, g1t=g1t, g2t=g2t)
+                y2, d1, d2, x0, pt=p1t, g1t=g1t, g2t=g2t,
+                method=method, param_distributions=param_distributions,
+                scoring=scoring, cv=cv, optuna_kwargs=optuna_kwargs)
             if p1t is None:
                 self.sequences[seq_name].MLmethod_p = to_tune['p'][
                     'estimator']['treat']
@@ -581,8 +602,22 @@ class dml2periods:
             self.sequences[seq_name].MLmethod_mu = to_tune['mu']['estimator'][
                 'treat']
         self.sequences[seq_name].tune_result = to_tune
+        self.sequences[seq_name].tune_method = method
         self.sequences[seq_name].is_tuned = True
         return self
+
+    def tune_optuna_sequence(
+            self, d1treat, d2treat, y2, d1, d2, x0, x1=None, p1t=None,
+            p2t=None, g1t=None, g2t=None, param_distributions=None,
+            scoring=None, cv=5, optuna_kwargs=None):
+        """
+        Tune initialized treatment sequence using Optuna.
+        """
+        return self.tune_auto_sequence(
+            d1treat=d1treat, d2treat=d2treat, y2=y2, d1=d1, d2=d2,
+            x0=x0, x1=x1, p1t=p1t, p2t=p2t, g1t=g1t, g2t=g2t,
+            method='optuna', param_distributions=param_distributions,
+            scoring=scoring, cv=cv, optuna_kwargs=optuna_kwargs)
 
     def _fitted_sequence_state(self, seq):
         if not seq.is_fitted:

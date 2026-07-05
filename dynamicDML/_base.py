@@ -7,6 +7,21 @@ from sklearn.base import BaseEstimator as BaseEstimator
 from sklearn.base import clone
 
 
+_FLAML_ESTIMATORS = ('FlamlRegressor', 'FlamlClassifier')
+_FLAML_CLASSIFIERS = ('FlamlClassifier',)
+_NUISANCE_KEYS = ('p', 'p1', 'p2', 'mu', 'nu')
+
+
+def _optuna_search_cv():
+    try:
+        from optuna_integration import OptunaSearchCV
+    except ImportError as exc:
+        raise ImportError(
+            'Optuna tuning requires optuna and optuna-integration. Install '
+            'them with `pip install optuna optuna-integration`.') from exc
+    return OptunaSearchCV
+
+
 class _BaseClass(ABC):
     """
     A base class that enforces a 'fit' method and
@@ -60,6 +75,116 @@ class _BaseClass(ABC):
                 f'If {varname} provided as dict it must contain all keys '
                 f'{keys}, got {list(var.keys())}')
         return True
+
+    def _get_nested_tune_value(self, value, nkey, tkey=None, default=None):
+        if value is None:
+            return default
+        if not isinstance(value, dict):
+            return value
+        if nkey not in value:
+            if any(key in value for key in _NUISANCE_KEYS):
+                return default
+            return value
+        nvalue = value[nkey]
+        if isinstance(nvalue, dict) and tkey in nvalue:
+            return nvalue[tkey]
+        return nvalue
+
+    def _optuna_params(
+            self, param_distributions, nkey, tkey, scoring, cv,
+            optuna_kwargs):
+        params = self._get_nested_tune_value(
+            param_distributions, nkey, tkey)
+        if params is None:
+            raise ValueError(
+                f'Optuna tuning requires param_distributions for nuisance '
+                f'`{nkey}`.')
+        settings = {}
+        if optuna_kwargs is not None:
+            settings.update(self._get_nested_tune_value(
+                optuna_kwargs, nkey, tkey, default={}))
+        settings.setdefault(
+            'scoring',
+            self._get_nested_tune_value(scoring, nkey, tkey))
+        settings.setdefault('cv', self._get_nested_tune_value(cv, nkey, tkey))
+        settings.setdefault('random_state', self.random_state)
+        return params, settings
+
+    def _wrap_optuna_learners(
+            self, learner_keys, param_distributions, scoring, cv,
+            optuna_kwargs):
+        OptunaSearchCV = _optuna_search_cv()
+        for nkey, attr in learner_keys.items():
+            estimator = getattr(self, attr)
+            params, settings = self._optuna_params(
+                param_distributions, nkey, 'treat', scoring, cv,
+                optuna_kwargs)
+            setattr(self, attr, OptunaSearchCV(
+                estimator=estimator,
+                param_distributions=params,
+                refit=True,
+                **settings))
+
+    def _tuning_info(self, estimator, method):
+        if method == 'flaml':
+            if getattr(estimator, 'auto_ml', None) is None:
+                return None
+            if estimator.auto_ml.model is None:
+                return None
+            return {
+                'estimator': estimator.auto_ml.model.estimator,
+                'score': estimator.auto_ml.best_loss,
+                'minimum_score': estimator.auto_ml.best_loss,
+                'best_params': getattr(estimator.auto_ml, 'best_config', None)}
+        if method == 'optuna':
+            if not hasattr(estimator, 'best_estimator_'):
+                return None
+            best_score = getattr(estimator, 'best_score_', None)
+            scoring = getattr(estimator, 'scoring', None)
+            minimum_score = -best_score if (
+                isinstance(scoring, str) and scoring.startswith('neg_')
+                and best_score is not None) else best_score
+            return {
+                'estimator': estimator.best_estimator_,
+                'score': best_score,
+                'minimum_score': minimum_score,
+                'best_params': getattr(estimator, 'best_params_', None),
+                'study': getattr(estimator, 'study_', None),
+                'n_trials': getattr(estimator, 'n_trials_', None)}
+        raise ValueError(f'Unknown tuning method `{method}`.')
+
+    def _collect_tuning_result(self, method):
+        best_estimators = {}
+        for nkey in self.MLmethod_dict.keys():
+            best_estimators[nkey] = {
+                'estimator': {}, 'score': {}, 'minimum_score': {},
+                'best_params': {}}
+            for tkey in self.MLmethod_dict[nkey].keys():
+                info = self._tuning_info(
+                    self.MLmethod_dict[nkey][tkey], method)
+                if info is None:
+                    continue
+                best_estimators[nkey]['estimator'][tkey] = info['estimator']
+                best_estimators[nkey]['score'][tkey] = info['score']
+                best_estimators[nkey]['minimum_score'][tkey] = (
+                    info['minimum_score'])
+                best_estimators[nkey]['best_params'][tkey] = (
+                    info['best_params'])
+                if method == 'optuna':
+                    best_estimators[nkey].setdefault('study', {})[tkey] = (
+                        info['study'])
+                    best_estimators[nkey].setdefault('n_trials', {})[tkey] = (
+                        info['n_trials'])
+        return best_estimators
+
+    def _predict_nuisance(self, estimator, x):
+        if hasattr(estimator, 'best_estimator_'):
+            if hasattr(estimator.best_estimator_, 'predict_proba'):
+                return estimator.predict_proba(x)[:, -1]
+            return estimator.predict(x)
+        if hasattr(estimator, 'predict_proba'):
+            return estimator.predict_proba(x)[:, -1]
+        return estimator.predict(x)
 
 
 class _dyntreatDML(_BaseClass):
@@ -291,10 +416,7 @@ class _dyntreatDML(_BaseClass):
         # Re-estimate p2
         p2_fit = self.MLmethod_dict['p2'][tkey].fit(y=d2dum_fit, X=x_fit)
         # Predict p2
-        if hasattr(p2_fit, 'predict_proba'):
-            p2_pred = p2_fit.predict_proba(x_pred)[:, -1]
-        else:
-            p2_pred = p2_fit.predict(x_pred)
+        p2_pred = self._predict_nuisance(p2_fit, x_pred)
         # Compute transformed outcome y1 according to DR formula
         y1_new = nu_hat + d2dum_pred * ((y_pred-nu_hat)/p2_pred)
         return y1_new, p2_pred
@@ -347,10 +469,7 @@ class _dyntreatDML(_BaseClass):
                 p1 = self.MLmethod_dict['p1'][tkey].fit(
                         y=d1dum[trsample], X=x0[trsample, :])
                 # Predict
-                if hasattr(p1, 'predict_proba'):
-                    p1te = p1.predict_proba(x0[tesample, :])[:, -1]
-                else:
-                    p1te = p1.predict(x0[tesample, :])
+                p1te = self._predict_nuisance(p1, x0[tesample, :])
                 # Return best params if tuning
                 if self.best_params is not None:
                     self.best_params['p1'][tkey] = getattr(p1, 'best_params_')
@@ -364,17 +483,11 @@ class _dyntreatDML(_BaseClass):
                 if self.p2_on_d1_subset:
                     p2 = self.MLmethod_dict['p2'][tkey].fit(
                             y=d2dum[trsample_d1], X=x0x1[trsample_d1, :])
-                    if hasattr(p2, 'predict_proba'):
-                        p2te = p2.predict_proba(x0x1[tesample, :])[:, -1]
-                    else:
-                        p2te = p2.predict(x0x1[tesample, :])
+                    p2te = self._predict_nuisance(p2, x0x1[tesample, :])
                 else:
                     p2 = self.MLmethod_dict['p2'][tkey].fit(
                             y=d2dum[trsample], X=d1x0x1[trsample, :])
-                    if hasattr(p2, 'predict_proba'):
-                        p2te = p2.predict_proba(d1x0x1[tesample, :])[:, -1]
-                    else:
-                        p2te = p2.predict(d1x0x1[tesample, :])
+                    p2te = self._predict_nuisance(p2, d1x0x1[tesample, :])
                 # Return best params if tuning
                 if self.best_params is not None:
                     self.best_params['p2'][tkey] = getattr(p2, 'best_params_')
@@ -392,10 +505,7 @@ class _dyntreatDML(_BaseClass):
             else:
                 y2d1d2 = self.MLmethod_dict['mu'][tkey].fit(
                         y=y2[trsample_d11], X=x0x1[trsample_d11, :])
-            if hasattr(y2d1d2, 'predict_proba'):
-                y2d1d2te = y2d1d2.predict_proba(x0x1[tesample, :])[:, -1]
-            else:
-                y2d1d2te = y2d1d2.predict(x0x1[tesample, :])
+            y2d1d2te = self._predict_nuisance(y2d1d2, x0x1[tesample, :])
             # Return best params if tuning
             if self.best_params is not None:
                 self.best_params['mu'][tkey] = getattr(y2d1d2, 'best_params_')
@@ -435,11 +545,8 @@ class _dyntreatDML(_BaseClass):
             # Case 1: no extra split for nu
             if not self.extra_split_train_nu:
                 # Predict y2d1d2 on train sample with d1
-                if hasattr(y2d1d2, 'predict_proba'):
-                    y2d1d2trd1 = y2d1d2.predict_proba(
-                        x0x1[trsample_d1, :])[:, -1]
-                else:
-                    y2d1d2trd1 = y2d1d2.predict(x0x1[trsample_d1, :])
+                y2d1d2trd1 = self._predict_nuisance(
+                    y2d1d2, x0x1[trsample_d1, :])
                 # Case 1b (otherwise it's 1a)
                 if self.doubly_robust_nu:
                     # Predict p2 on trsample_d1
@@ -447,18 +554,11 @@ class _dyntreatDML(_BaseClass):
                         p2trd1 = p2_ext[trsample_d1]
                     else:
                         if self.p2_on_d1_subset:
-                            if hasattr(p2, 'predict_proba'):
-                                p2trd1 = p2.predict_proba(
-                                        x0x1[trsample_d1, :])[:, -1]
-                            else:
-                                p2trd1 = p2.predict(x0x1[trsample_d1, :])
+                            p2trd1 = self._predict_nuisance(
+                                p2, x0x1[trsample_d1, :])
                         else:
-                            if hasattr(p2, 'predict_proba'):
-                                p2trd1 = p2.predict_proba(
-                                        d1x0x1[trsample_d1, :])[:, -1]
-                            else:
-                                p2trd1 = p2.predict(
-                                        d1x0x1[trsample_d1, :])
+                            p2trd1 = self._predict_nuisance(
+                                p2, d1x0x1[trsample_d1, :])
                     # Compute transformed outcome y1 according to DR formula
                     y2d1d2trd1 = y2d1d2trd1 + d2dum[trsample_d1] * ((
                         y2[trsample_d1]-y2d1d2trd1)/p2trd1)
@@ -475,12 +575,8 @@ class _dyntreatDML(_BaseClass):
                     y2d1d2 = self.MLmethod_dict['mu'][tkey].fit(
                             y=y2[trsample1_d11], X=x0x1[trsample1_d11, :])
                 # predict mu on 2nd 1/2 of train set with d1
-                if hasattr(y2d1d2, 'predict_proba'):
-                    y2d1d2tr2d1 = y2d1d2.predict_proba(
-                            x0x1[trsample2_d1, :])[:, -1]
-                else:
-                    y2d1d2tr2d1 = y2d1d2.predict(
-                            x0x1[trsample2_d1, :])
+                y2d1d2tr2d1 = self._predict_nuisance(
+                    y2d1d2, x0x1[trsample2_d1, :])
                 if self.doubly_robust_nu:
                     # Re-estimate p2 on 1st 1/2 of train set (considering
                     # p2_on_d1_subset parameter)
@@ -530,12 +626,8 @@ class _dyntreatDML(_BaseClass):
                     y2d1d2 = self.MLmethod_dict['mu'][tkey].fit(
                             y=y2[trsample2_d11], X=x0x1[trsample2_d11, :])
                     # predict mu on 1st 1/2 of train set with d1
-                    if hasattr(y2d1d2, 'predict_proba'):
-                        y2d1d2tr1d1 = y2d1d2.predict_proba(x0x1[
-                                trsample1_d1, :])[:, -1]
-                    else:
-                        y2d1d2tr1d1 = y2d1d2.predict(
-                                x0x1[trsample1_d1, :])
+                    y2d1d2tr1d1 = self._predict_nuisance(
+                        y2d1d2, x0x1[trsample1_d1, :])
                     if self.doubly_robust_nu:
                         # DR transformation of y2d1d2
                         if self.p2_on_d1_subset:
@@ -770,11 +862,12 @@ class _dyntreatDML(_BaseClass):
         # return the output
         return self
 
-    # TODO add GridSearchCV as option in addition to AutoML
     def tune_auto(
-            self, y2, d1, d2, x0, x1, p1t=None, p2t=None, g1t=None, g2t=None):
+            self, y2, d1, d2, x0, x1, p1t=None, p2t=None, g1t=None, g2t=None,
+            method='flaml', param_distributions=None, scoring=None, cv=5,
+            optuna_kwargs=None):
         """
-        Tune dyntreatDML object using AutoML
+        Tune dyntreatDML object using AutoML or Optuna.
 
         Parameters
         ----------
@@ -806,30 +899,51 @@ class _dyntreatDML(_BaseClass):
             If array provided, this will be used as counterfactual and
             ``d1treat`` serves only as a name of the counterfactual. Can be
             used to implement dynamic policies.
+        method : {'flaml', 'optuna'}
+            Tuning backend. FLAML keeps the historical behavior. Optuna wraps
+            the provided sklearn estimators in ``OptunaSearchCV``.
+        param_distributions : dict or None
+            Optuna search spaces keyed by nuisance name (`p1`, `p2`, `mu`,
+            `nu`). Values must be Optuna distribution mappings.
+        scoring : str, callable, dict or None
+            Scoring passed to ``OptunaSearchCV``. Can be nuisance-keyed.
+        cv : int, CV splitter, dict or None
+            Cross-validation strategy passed to ``OptunaSearchCV``. Can be
+            nuisance-keyed.
+        optuna_kwargs : dict or None
+            Additional keyword arguments for ``OptunaSearchCV``. Can be global
+            or nuisance-keyed.
         """
-        # Check if methods are AutoML
-        if not type(self.MLmethod_mu).__name__ in (
-                'FlamlRegressor', 'FlamlClassifier'):
+        if method not in ('flaml', 'optuna'):
             raise ValueError(
-                f'For tuning, '
-                f'MLmethod_mu must be of type FlamlRegressor or Flaml'
-                f'Classifier, got {type(self.MLmethod_mu).__name__}')
-        if not type(self.MLmethod_nu).__name__ in (
-                'FlamlRegressor', 'FlamlClassifier'):
-            raise ValueError(
-                f'For tuning, '
-                f'MLmethod_nu must be of type FlamlRegressor or Flaml'
-                f'Classifier, got {type(self.MLmethod_nu).__name__}')
-        if not type(self.MLmethod_p1).__name__ in ('FlamlClassifier'):
-            raise ValueError(
-                f'For tuning, '
-                f'MLmethod_p1 must be of type FlamlClassifier, got '
-                f'{type(self.MLmethod_p1).__name__}')
-        if not type(self.MLmethod_p2).__name__ in ('FlamlClassifier'):
-            raise ValueError(
-                f'For tuning, '
-                f'MLmethod_p2 must be of type FlamlClassifier, got '
-                f'{type(self.MLmethod_p2).__name__}')
+                f'method must be one of `flaml` or `optuna`, got {method}.')
+        if method == 'flaml':
+            # Check if methods are AutoML
+            if not type(self.MLmethod_mu).__name__ in _FLAML_ESTIMATORS:
+                raise ValueError(
+                    f'For tuning, '
+                    f'MLmethod_mu must be of type FlamlRegressor or Flaml'
+                    f'Classifier, got {type(self.MLmethod_mu).__name__}')
+            if not type(self.MLmethod_nu).__name__ in _FLAML_ESTIMATORS:
+                raise ValueError(
+                    f'For tuning, '
+                    f'MLmethod_nu must be of type FlamlRegressor or Flaml'
+                    f'Classifier, got {type(self.MLmethod_nu).__name__}')
+            if not type(self.MLmethod_p1).__name__ in _FLAML_CLASSIFIERS:
+                raise ValueError(
+                    f'For tuning, '
+                    f'MLmethod_p1 must be of type FlamlClassifier, got '
+                    f'{type(self.MLmethod_p1).__name__}')
+            if not type(self.MLmethod_p2).__name__ in _FLAML_CLASSIFIERS:
+                raise ValueError(
+                    f'For tuning, '
+                    f'MLmethod_p2 must be of type FlamlClassifier, got '
+                    f'{type(self.MLmethod_p2).__name__}')
+        else:
+            self._wrap_optuna_learners(
+                {'p1': 'MLmethod_p1', 'p2': 'MLmethod_p2',
+                 'mu': 'MLmethod_mu', 'nu': 'MLmethod_nu'},
+                param_distributions, scoring, cv, optuna_kwargs)
         # Only one fold -> fit on whole data. since CV for tuning has same
         # number of folds as cross-fitting of dml -> same sample size
         self.nfolds = 1
@@ -854,19 +968,7 @@ class _dyntreatDML(_BaseClass):
             p1_ext=p1t,
             p2_ext=p2t)
         # Get best estimators
-        best_estimators = {}
-        for nkey in self.MLmethod_dict.keys():
-            best_estimators[nkey] = {
-                'estimator': {}, 'score': {}}
-            for tkey in self.MLmethod_dict[nkey].keys():
-                if self.MLmethod_dict[nkey][
-                        tkey].auto_ml.model is not None:
-                    best_estimators[nkey]['estimator'][tkey] = (
-                        self.MLmethod_dict[nkey][
-                            tkey].auto_ml.model.estimator)
-                    best_estimators[nkey]['score'][tkey] = (
-                        self.MLmethod_dict[nkey][
-                            tkey].auto_ml.best_loss)
+        best_estimators = self._collect_tuning_result(method)
         # Return result
         return best_estimators
 
@@ -989,10 +1091,7 @@ class _stattreatDML(_BaseClass):
             else:
                 p = self.MLmethod_dict['p'][tkey].fit(
                         y=ddum[trsample], X=x0[trsample, :])
-                if hasattr(p, 'predict_proba'):
-                    pte = p.predict_proba(x0[tesample, :])[:, -1]
-                else:
-                    pte = p.predict(x0[tesample, :])
+                pte = self._predict_nuisance(p, x0[tesample, :])
                 # Return best params if tuning
                 if self.best_params is not None:
                     self.best_params['p'][tkey] = getattr(p, 'best_params_')
@@ -1000,10 +1099,7 @@ class _stattreatDML(_BaseClass):
             # 2) mu
             mu = self.MLmethod_dict['mu'][tkey].fit(
                     y=y2[trsample_d], X=x0[trsample_d, :])
-            if hasattr(mu, 'predict_proba'):
-                mute = mu.predict_proba(x0[tesample, :])[:, -1]
-            else:
-                mute = mu.predict(x0[tesample, :])
+            mute = self._predict_nuisance(mu, x0[tesample, :])
             # Return best params if tuning
             if self.best_params is not None:
                 self.best_params['mu'][tkey] = getattr(mu, 'best_params_')
@@ -1172,10 +1268,12 @@ class _stattreatDML(_BaseClass):
         # return the output
         return self
 
-    # TODO add GridSearchCV
-    def tune_auto(self, y2, d1, d2, x0, pt=None, g1t=None, g2t=None):
+    def tune_auto(
+            self, y2, d1, d2, x0, pt=None, g1t=None, g2t=None,
+            method='flaml', param_distributions=None, scoring=None, cv=5,
+            optuna_kwargs=None):
         """
-        Tune stattreatDML object using AutoML
+        Tune stattreatDML object using AutoML or Optuna.
 
         Parameters
         ----------
@@ -1202,17 +1300,38 @@ class _stattreatDML(_BaseClass):
             If array provided, this will be used as counterfactual and
             ``d1treat`` serves only as a name of the counterfactual. Can be
             used to implement dynamic policies.
+        method : {'flaml', 'optuna'}
+            Tuning backend. FLAML keeps the historical behavior. Optuna wraps
+            the provided sklearn estimators in ``OptunaSearchCV``.
+        param_distributions : dict or None
+            Optuna search spaces keyed by nuisance name (`p`, `mu`). Values
+            must be Optuna distribution mappings.
+        scoring : str, callable, dict or None
+            Scoring passed to ``OptunaSearchCV``. Can be nuisance-keyed.
+        cv : int, CV splitter, dict or None
+            Cross-validation strategy passed to ``OptunaSearchCV``. Can be
+            nuisance-keyed.
+        optuna_kwargs : dict or None
+            Additional keyword arguments for ``OptunaSearchCV``. Can be global
+            or nuisance-keyed.
         """
-        # Check if methods are AutoML
-        if not type(self.MLmethod_mu).__name__ in (
-                'FlamlRegressor', 'FlamlClassifier'):
+        if method not in ('flaml', 'optuna'):
             raise ValueError(
-                f'MLmethod_mu must be of type FlamlRegressor or Flaml'
-                f'Classifier, got {type(self.MLmethod_mu).__name__}')
-        if not type(self.MLmethod_p).__name__ in ('FlamlClassifier'):
-            raise ValueError(
-                f'MLmethod_p must be of type FlamlClassifier, got '
-                f'{type(self.MLmethod_p).__name__}')
+                f'method must be one of `flaml` or `optuna`, got {method}.')
+        if method == 'flaml':
+            # Check if methods are AutoML
+            if not type(self.MLmethod_mu).__name__ in _FLAML_ESTIMATORS:
+                raise ValueError(
+                    f'MLmethod_mu must be of type FlamlRegressor or Flaml'
+                    f'Classifier, got {type(self.MLmethod_mu).__name__}')
+            if not type(self.MLmethod_p).__name__ in _FLAML_CLASSIFIERS:
+                raise ValueError(
+                    f'MLmethod_p must be of type FlamlClassifier, got '
+                    f'{type(self.MLmethod_p).__name__}')
+        else:
+            self._wrap_optuna_learners(
+                {'p': 'MLmethod_p', 'mu': 'MLmethod_mu'},
+                param_distributions, scoring, cv, optuna_kwargs)
         # Only one fold -> fit on whole data. since CV for tuning has same
         # number of folds as cross-fitting of dml -> same sample size
         self.nfolds = 1
@@ -1234,17 +1353,6 @@ class _stattreatDML(_BaseClass):
                 tkey='treat',
                 p_ext=pt))
         # Get best estimators
-        best_estimators = {}
-        for nkey in self.MLmethod_dict.keys():
-            best_estimators[nkey] = {'estimator': {}, 'score': {}}
-            for tkey in self.MLmethod_dict[nkey].keys():
-                if self.MLmethod_dict[nkey][
-                        tkey].auto_ml.model is not None:
-                    best_estimators[nkey]['estimator'][tkey] = (
-                        self.MLmethod_dict[
-                            nkey][tkey].auto_ml.model.estimator)
-                    best_estimators[nkey]['score'][tkey] = (
-                        self.MLmethod_dict[
-                            nkey][tkey].auto_ml.best_loss)
+        best_estimators = self._collect_tuning_result(method)
         # Return result
         return best_estimators
